@@ -1,0 +1,9 @@
+alpaca
+alpaca-py
+requests
+pyyaml
+scipy
+tensorflow
+alpaca_trade_api
+cement==2.10.14
+ta-lib

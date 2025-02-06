@@ -1,0 +1,430 @@
+--------------------------------------------------
+2024-12-10 20:11:36.582073
+[0] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 525.64 True
+Account stats: {'current_balance': 100525.64592028322, 'minimum': 72421.6985420038, 'maximum': 100653.67280677546, 'transactions_count': 1156}
+--------------------------------------------------
+2024-12-10 20:14:44.497267
+[1] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+ Skipping startegy with pnl -264.6024854013958 False
+Account stats: {'current_balance': 99735.3975145986, 'minimum': 81429.08222318068, 'maximum': 100486.11409787057, 'transactions_count': 4184}
+--------------------------------------------------
+2024-12-10 20:17:49.544406
+[2] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 351.27637571125524 True
+Account stats: {'current_balance': 100351.27637571126, 'minimum': 72720.4784478004, 'maximum': 100358.03618387436, 'transactions_count': 290}
+--------------------------------------------------
+2024-12-10 20:19:21.954212
+[3] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 331.9182245979755 True
+Account stats: {'current_balance': 100331.91822459798, 'minimum': 89727.4885237564, 'maximum': 100392.98045371694, 'transactions_count': 904}
+--------------------------------------------------
+2024-12-10 20:21:02.652573
+[4] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 420.8833940594777 True
+Account stats: {'current_balance': 100420.88339405948, 'minimum': 77000.0, 'maximum': 100420.88339405948, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 20:22:31.241384
+[5] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 301.0284988015628 True
+Account stats: {'current_balance': 100301.02849880156, 'minimum': 92928.33689467546, 'maximum': 100301.02849880156, 'transactions_count': 112}
+--------------------------------------------------
+2024-12-10 20:24:02.109993
+[6] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 10.247408049937803 True
+Account stats: {'current_balance': 100010.24740804994, 'minimum': 74559.43235149753, 'maximum': 100138.27429454216, 'transactions_count': 1156}
+--------------------------------------------------
+2024-12-10 20:25:45.243619
+[7] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 460.59968029095035 True
+Account stats: {'current_balance': 100460.59968029095, 'minimum': 82890.91823634676, 'maximum': 100531.14851602548, 'transactions_count': 4184}
+--------------------------------------------------
+2024-12-10 20:28:10.337369
+[8] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 254.50040954361612 True
+Account stats: {'current_balance': 100254.50040954362, 'minimum': 74826.4733689468, 'maximum': 100312.60932819039, 'transactions_count': 290}
+--------------------------------------------------
+2024-12-10 20:29:40.052236
+[9] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 309.3080186552834 True
+Account stats: {'current_balance': 100309.30801865528, 'minimum': 89747.43321386517, 'maximum': 100367.17348371459, 'transactions_count': 904}
+--------------------------------------------------
+2024-12-10 20:31:15.156210
+[10] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 312.5154327168857 True
+Account stats: {'current_balance': 100312.51543271689, 'minimum': 77000.0, 'maximum': 100312.51543271689, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 20:32:42.654439
+[11] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 143.25114958643098 True
+Account stats: {'current_balance': 100143.25114958643, 'minimum': 92898.6589980831, 'maximum': 100143.25114958643, 'transactions_count': 112}
+--------------------------------------------------
+2024-12-10 20:34:11.016594
+[12] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 548.74 True
+Account stats: {'current_balance': 100548.74553801646, 'minimum': 77961.75037680857, 'maximum': 100625.40955031656, 'transactions_count': 502}
+--------------------------------------------------
+2024-12-10 20:35:48.938365
+[13] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -461.022953470223 False
+Account stats: {'current_balance': 99538.97704652978, 'minimum': 86305.9163416412, 'maximum': 100346.97134519732, 'transactions_count': 2552}
+--------------------------------------------------
+2024-12-10 20:38:02.818682
+[14] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 359.0344267194014 True
+Account stats: {'current_balance': 100359.0344267194, 'minimum': 77909.54399281285, 'maximum': 100446.44027668664, 'transactions_count': 150}
+--------------------------------------------------
+2024-12-10 20:39:30.468195
+[15] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 47.40466852334794 True
+Account stats: {'current_balance': 100047.40466852335, 'minimum': 89806.41537646168, 'maximum': 100062.09095488826, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 20:41:05.352452
+[16] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 335.33734900524723 True
+Account stats: {'current_balance': 100335.33734900525, 'minimum': 82000.0, 'maximum': 100335.33734900525, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 20:42:32.808860
+[17] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 102.59758190927096 True
+Account stats: {'current_balance': 100102.59758190927, 'minimum': 93912.79079851559, 'maximum': 100133.90656067387, 'transactions_count': 80}
+--------------------------------------------------
+2024-12-10 20:44:00.868990
+[18] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 205.98871149783372 True
+Account stats: {'current_balance': 100205.98871149783, 'minimum': 79976.12373037025, 'maximum': 100340.51593003506, 'transactions_count': 502}
+--------------------------------------------------
+2024-12-10 20:45:35.967055
+[19] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 108.63343062631611 True
+Account stats: {'current_balance': 100108.63343062632, 'minimum': 88891.93838456157, 'maximum': 100244.15563434274, 'transactions_count': 2552}
+--------------------------------------------------
+2024-12-10 20:47:35.729337
+[20] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 254.79698404377268 True
+Account stats: {'current_balance': 100254.79698404377, 'minimum': 79982.65589818294, 'maximum': 100344.27085066609, 'transactions_count': 150}
+--------------------------------------------------
+2024-12-10 20:49:03.525991
+[21] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 99.21452218474587 True
+Account stats: {'current_balance': 100099.21452218475, 'minimum': 89798.10223534243, 'maximum': 100122.15896260935, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 20:50:35.379080
+[22] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 260.0208724569093 True
+Account stats: {'current_balance': 100260.02087245691, 'minimum': 82000.0, 'maximum': 100260.02087245691, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 20:52:03.254869
+[23] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 30.83214649319416 True
+Account stats: {'current_balance': 100030.8321464932, 'minimum': 93900.87127450302, 'maximum': 100071.08763528532, 'transactions_count': 80}
+--------------------------------------------------
+2024-12-10 20:53:30.793334
+[24] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -54.460490551486146 False
+Account stats: {'current_balance': 99945.53950944851, 'minimum': 76267.46200330193, 'maximum': 100011.0877599826, 'transactions_count': 656}
+--------------------------------------------------
+2024-12-10 20:55:10.551571
+[25] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -524.2853150520823 False
+Account stats: {'current_balance': 99475.71468494792, 'minimum': 83333.80386459138, 'maximum': 100147.92715340422, 'transactions_count': 2442}
+--------------------------------------------------
+2024-12-10 20:57:29.171491
+[26] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 43.71151762679801 True
+Account stats: {'current_balance': 100043.7115176268, 'minimum': 76685.34454292707, 'maximum': 100120.08514576942, 'transactions_count': 174}
+--------------------------------------------------
+2024-12-10 20:58:58.008910
+[27] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 66.95794472843409 True
+Account stats: {'current_balance': 100066.95794472843, 'minimum': 90838.0088165374, 'maximum': 100108.61398316568, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 21:00:33.479512
+[28] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 425.06987859455694 True
+Account stats: {'current_balance': 100425.06987859456, 'minimum': 77000.0, 'maximum': 100425.06987859456, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 21:02:00.854250
+[29] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+ Skipping startegy with pnl 282.3636377132061 True
+Account stats: {'current_balance': 100282.3636377132, 'minimum': 95005.86734852882, 'maximum': 100282.3636377132, 'transactions_count': 70}
+--------------------------------------------------
+2024-12-10 21:03:28.630005
+[30] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -333.19928035736666 False
+Account stats: {'current_balance': 99666.80071964263, 'minimum': 78401.42723056852, 'maximum': 100008.04406116385, 'transactions_count': 656}
+--------------------------------------------------
+2024-12-10 21:05:09.039780
+[31] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 79.03516763588414 True
+Account stats: {'current_balance': 100079.03516763588, 'minimum': 85927.81066419416, 'maximum': 100144.25967775116, 'transactions_count': 2442}
+--------------------------------------------------
+2024-12-10 21:07:11.511267
+[32] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 39.75490531041578 True
+Account stats: {'current_balance': 100039.75490531042, 'minimum': 78802.38101250405, 'maximum': 100078.93299222537, 'transactions_count': 174}
+--------------------------------------------------
+2024-12-10 21:08:39.709286
+[33] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 173.14605904485506 True
+Account stats: {'current_balance': 100173.14605904486, 'minimum': 92820.72597847403, 'maximum': 100214.8020974821, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 21:10:11.510383
+[34] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 262.0487839986163 True
+Account stats: {'current_balance': 100262.04878399862, 'minimum': 79019.34142826364, 'maximum': 100262.04878399862, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 21:11:39.068497
+[35] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 168.87587116172654 True
+Account stats: {'current_balance': 100168.87587116173, 'minimum': 95057.04178681418, 'maximum': 100168.87587116173, 'transactions_count': 70}
+--------------------------------------------------
+2024-12-10 21:13:06.117108
+[36] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 277.2605563441466 True
+Account stats: {'current_balance': 100277.26055634415, 'minimum': 81763.33258403321, 'maximum': 100314.4895287959, 'transactions_count': 254}
+--------------------------------------------------
+2024-12-10 21:14:42.046658
+[37] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -599.4383804766258 False
+Account stats: {'current_balance': 99400.56161952337, 'minimum': 90214.34683699196, 'maximum': 100016.5915230306, 'transactions_count': 1526}
+--------------------------------------------------
+2024-12-10 21:16:44.104524
+[38] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 112.06623811091413 True
+Account stats: {'current_balance': 100112.06623811091, 'minimum': 81838.16303704362, 'maximum': 100177.27963076494, 'transactions_count': 92}
+--------------------------------------------------
+2024-12-10 21:19:51.854823
+[40] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 339.1165937213227 True
+Account stats: {'current_balance': 100339.11659372132, 'minimum': 82000.0, 'maximum': 100339.11659372132, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 21:21:22.109384
+[41] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 147.32239585660864 True
+Account stats: {'current_balance': 100147.32239585661, 'minimum': 95054.8605543798, 'maximum': 100147.32239585661, 'transactions_count': 42}
+--------------------------------------------------
+2024-12-10 21:22:53.076938
+[42] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 44.11138466492412 True
+Account stats: {'current_balance': 100044.11138466492, 'minimum': 83782.29815717782, 'maximum': 100079.47760407822, 'transactions_count': 254}
+--------------------------------------------------
+2024-12-10 21:24:28.253298
+[43] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -117.48398354709207 False
+Account stats: {'current_balance': 99882.51601645291, 'minimum': 90907.62528192069, 'maximum': 100024.95927575315, 'transactions_count': 1526}
+--------------------------------------------------
+2024-12-10 21:26:19.388956
+[44] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 50.19825869849592 True
+Account stats: {'current_balance': 100050.1982586985, 'minimum': 83887.32315295655, 'maximum': 100077.12870861255, 'transactions_count': 92}
+--------------------------------------------------
+2024-12-10 21:27:49.423129
+[45] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 94.15866935293889 True
+Account stats: {'current_balance': 100094.15866935294, 'minimum': 92863.30780327976, 'maximum': 100115.33745928259, 'transactions_count': 374}
+--------------------------------------------------
+2024-12-10 21:29:22.055299
+[46] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 209.1469839196361 True
+Account stats: {'current_balance': 100209.14698391964, 'minimum': 84019.34142826364, 'maximum': 100209.14698391964, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 21:30:52.272517
+[47] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': -0.01, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 70.66863658801594 True
+Account stats: {'current_balance': 100070.66863658802, 'minimum': 95019.00903621875, 'maximum': 100084.80542757583, 'transactions_count': 42}
+--------------------------------------------------
+2024-12-10 21:32:21.166124
+[48] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -15.729031046008458 False
+Account stats: {'current_balance': 99984.27096895399, 'minimum': 74889.39262984753, 'maximum': 100194.72829381411, 'transactions_count': 1156}
+--------------------------------------------------
+2024-12-10 21:33:51.455212
+[49] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 234.1451610407239 True
+Account stats: {'current_balance': 100234.14516104072, 'minimum': 89832.2252370276, 'maximum': 100398.96065945517, 'transactions_count': 4184}
+--------------------------------------------------
+2024-12-10 21:35:24.651191
+[50] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 256.89479531237157 True
+Account stats: {'current_balance': 100256.89479531237, 'minimum': 75001.99330038606, 'maximum': 100338.37715592798, 'transactions_count': 290}
+--------------------------------------------------
+2024-12-10 21:36:53.164693
+[51] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 133.89545896838536 True
+Account stats: {'current_balance': 100133.89545896839, 'minimum': 89946.03192467, 'maximum': 100146.68290913414, 'transactions_count': 904}
+--------------------------------------------------
+2024-12-10 21:38:22.057454
+[52] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 211.3326290203113 True
+Account stats: {'current_balance': 100211.33262902031, 'minimum': 77000.0, 'maximum': 100211.33262902031, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 21:39:49.426325
+[53] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 100.12409307029156 True
+Account stats: {'current_balance': 100100.12409307029, 'minimum': 94011.20955569556, 'maximum': 100125.49510344345, 'transactions_count': 112}
+--------------------------------------------------
+2024-12-10 21:41:17.341635
+[54] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -140.48596900275152 False
+Account stats: {'current_balance': 99859.51403099725, 'minimum': 76916.62922208878, 'maximum': 100088.63399172945, 'transactions_count': 1156}
+--------------------------------------------------
+2024-12-10 21:42:46.745347
+[55] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 273.23444325712626 True
+Account stats: {'current_balance': 100273.23444325713, 'minimum': 89843.39512532907, 'maximum': 100401.34791299947, 'transactions_count': 4184}
+--------------------------------------------------
+2024-12-10 21:44:19.542189
+[56] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 119.02594383215182 True
+Account stats: {'current_balance': 100119.02594383215, 'minimum': 77008.93322837075, 'maximum': 100210.55447750939, 'transactions_count': 290}
+--------------------------------------------------
+2024-12-10 21:45:49.852632
+[57] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 111.86962798224704 True
+Account stats: {'current_balance': 100111.86962798225, 'minimum': 89937.17342663399, 'maximum': 100124.657078148, 'transactions_count': 904}
+--------------------------------------------------
+2024-12-10 21:47:18.893983
+[58] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 174.89453949539165 True
+Account stats: {'current_balance': 100174.89453949539, 'minimum': 77000.0, 'maximum': 100174.89453949539, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 21:48:46.506183
+[59] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 56.475832154159434 True
+Account stats: {'current_balance': 100056.47583215416, 'minimum': 93987.8312138731, 'maximum': 100094.17950598414, 'transactions_count': 112}
+--------------------------------------------------
+2024-12-10 21:50:14.234713
+[60] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 208.24466733148438 True
+Account stats: {'current_balance': 100208.24466733148, 'minimum': 79983.11355853119, 'maximum': 100319.08703224135, 'transactions_count': 502}
+--------------------------------------------------
+2024-12-10 21:51:43.281997
+[61] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 154.45417225272104 True
+Account stats: {'current_balance': 100154.45417225272, 'minimum': 89849.07285931693, 'maximum': 100392.53886921213, 'transactions_count': 2552}
+--------------------------------------------------
+2024-12-10 21:53:15.978179
+[62] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 340.82773811061634 True
+Account stats: {'current_balance': 100340.82773811062, 'minimum': 80050.91127021861, 'maximum': 100406.24953113274, 'transactions_count': 150}
+--------------------------------------------------
+2024-12-10 21:54:43.835512
+[63] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -2.666350914063514 False
+Account stats: {'current_balance': 99997.33364908594, 'minimum': 89954.19764370538, 'maximum': 100076.73665478047, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 21:56:12.066563
+[64] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 245.27928344950487 True
+Account stats: {'current_balance': 100245.2792834495, 'minimum': 82000.0, 'maximum': 100245.2792834495, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 21:57:39.665492
+[65] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 36.62959164722997 True
+Account stats: {'current_balance': 100036.62959164723, 'minimum': 94999.85294579554, 'maximum': 100080.9432774214, 'transactions_count': 80}
+--------------------------------------------------
+2024-12-10 21:59:07.094551
+[66] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 97.65433741925517 True
+Account stats: {'current_balance': 100097.65433741926, 'minimum': 81996.71151760395, 'maximum': 100206.40398016507, 'transactions_count': 502}
+--------------------------------------------------
+2024-12-10 22:00:35.919933
+[67] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 221.92406288914208 True
+Account stats: {'current_balance': 100221.92406288914, 'minimum': 89879.11685131391, 'maximum': 100427.87172812964, 'transactions_count': 2552}
+--------------------------------------------------
+2024-12-10 22:02:07.516205
+[68] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 223.57937711030536 True
+Account stats: {'current_balance': 100223.5793771103, 'minimum': 82057.8511982033, 'maximum': 100288.0462719288, 'transactions_count': 150}
+--------------------------------------------------
+2024-12-10 22:03:35.294834
+[69] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 23.258093890879536 True
+Account stats: {'current_balance': 100023.25809389088, 'minimum': 89957.45649260815, 'maximum': 100083.61367739875, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 22:05:03.805392
+[70] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 208.8411939245707 True
+Account stats: {'current_balance': 100208.84119392457, 'minimum': 82000.0, 'maximum': 100208.84119392457, 'transactions_count': 36}
+--------------------------------------------------
+2024-12-10 22:06:31.310853
+[71] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.6, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 12.319958764783223 True
+Account stats: {'current_balance': 100012.31995876478, 'minimum': 94988.59195091185, 'maximum': 100061.74502690086, 'transactions_count': 80}
+--------------------------------------------------
+2024-12-10 22:07:58.726287
+[72] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 130.4855419498199 True
+Account stats: {'current_balance': 100130.48554194982, 'minimum': 77973.91884630664, 'maximum': 100175.6722962472, 'transactions_count': 656}
+--------------------------------------------------
+2024-12-10 22:09:27.662201
+[73] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 35.046638734900625 True
+Account stats: {'current_balance': 100035.0466387349, 'minimum': 93920.12852621496, 'maximum': 100100.27885179696, 'transactions_count': 2442}
+--------------------------------------------------
+2024-12-10 22:10:58.731391
+[74] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 177.26754663919564 True
+Account stats: {'current_balance': 100177.2675466392, 'minimum': 77990.31644828313, 'maximum': 100201.9085217779, 'transactions_count': 174}
+--------------------------------------------------
+2024-12-10 22:12:26.027069
+[75] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 82.49386060948018 True
+Account stats: {'current_balance': 100082.49386060948, 'minimum': 93998.12651356109, 'maximum': 100124.54296963254, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 22:13:54.337791
+[76] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 187.99713539391814 True
+Account stats: {'current_balance': 100187.99713539392, 'minimum': 78001.65070980521, 'maximum': 100189.77071378451, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 22:15:21.312734
+[77] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 96.00017505415599 True
+Account stats: {'current_balance': 100096.00017505416, 'minimum': 95998.23432547462, 'maximum': 100108.35504539341, 'transactions_count': 70}
+--------------------------------------------------
+2024-12-10 22:16:47.918103
+[78] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 43.268408077725326 True
+Account stats: {'current_balance': 100043.26840807773, 'minimum': 80007.59180269454, 'maximum': 100088.4551623751, 'transactions_count': 656}
+--------------------------------------------------
+2024-12-10 22:18:15.852597
+[79] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -53.885292938459315 False
+Account stats: {'current_balance': 99946.11470706154, 'minimum': 94906.62983544527, 'maximum': 100050.08827880415, 'transactions_count': 2442}
+--------------------------------------------------
+2024-12-10 22:19:46.298902
+[80] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 73.63120570273895 True
+Account stats: {'current_balance': 100073.63120570274, 'minimum': 80007.57019760669, 'maximum': 100098.27218084145, 'transactions_count': 174}
+--------------------------------------------------
+2024-12-10 22:21:13.296181
+[81] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 23.200100636226125 True
+Account stats: {'current_balance': 100023.20010063623, 'minimum': 94991.44825475209, 'maximum': 100098.35081881618, 'transactions_count': 566}
+--------------------------------------------------
+2024-12-10 22:22:40.612950
+[82] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 96.90591261563532 True
+Account stats: {'current_balance': 100096.90591261564, 'minimum': 80020.99213806885, 'maximum': 100098.67949100623, 'transactions_count': 50}
+--------------------------------------------------
+2024-12-10 22:24:09.175802
+[83] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0025, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.15, 'max_profit_pct': 0.008, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 38.044298810578766 True
+Account stats: {'current_balance': 100038.04429881058, 'minimum': 96986.11697853585, 'maximum': 100064.32291565454, 'transactions_count': 70}
+--------------------------------------------------
+2024-12-10 22:25:38.130161
+[84] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 214.29419871485152 True
+Account stats: {'current_balance': 100214.29419871485, 'minimum': 83012.3884970152, 'maximum': 100241.45994578314, 'transactions_count': 254}
+--------------------------------------------------
+2024-12-10 22:27:08.431011
+[85] Strategy: {'buffer_size': 12, 'min_price_rate_change': 0.0005, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl -76.9733785612625 False
+Account stats: {'current_balance': 99923.02662143874, 'minimum': 93914.83072553593, 'maximum': 100051.95638988857, 'transactions_count': 1526}
+--------------------------------------------------
+2024-12-10 22:28:40.312610
+[86] Strategy: {'buffer_size': 30, 'min_price_rate_change': 0.001, 'stop_loss_pct': 0.0025, 'price_trend_fit': 0.85, 'require_asc_volume_trend': True, 'volume_trend_fit': 0.25, 'max_profit_pct': 0.015, 'keep_open_if_rising': True, 'rounding_decimals': 4, 'one_open_trade': False, 'verbose': False}
+Skipping startegy with pnl 238.2109793377458 True
+Account stats: {'current_balance': 100238.21097933775, 'minimum': 83019.4630223843, 'maximum': 100254.72637634419, 'transactions_count': 92}

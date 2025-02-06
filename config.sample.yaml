@@ -1,0 +1,3 @@
+APCA-API-KEY-ID: FOO
+APCA-API-SECRET-KEY: BAR
+HISTORICAL_MARKET_DATA_ENDPOINT: "https://data.alpaca.markets/v2"       
