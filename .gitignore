@@ -1,2 +1,4 @@
 config.yaml
+DQN_trading_model.keras
+replay_memory.pkl
 .venv
