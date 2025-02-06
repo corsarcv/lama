@@ -15,17 +15,22 @@ from tensorflow.keras.optimizers import Adam
 from config import Config
 from utils.constants import APCA_API_KEY_ID, APCA_API_SECRET_KEY
 
-# Alpaca API Config (Leave blank for simulation mode)
+# ========================
+# 🔹 CONFIGURATION SECTION
+# ========================
+
+# Alpaca API Keys (Replace with your actual keys)
 ALPACA_API_KEY = Config()[APCA_API_KEY_ID]  # Add your Alpaca API Key
 ALPACA_SECRET_KEY = Config()[APCA_API_SECRET_KEY]  # Add your Alpaca Secret Key
-BASE_URL = "https://paper-api.alpaca.markets"
+BASE_URL = "https://paper-api.alpaca.markets" # Use live trading by changing to live endpoint
 
 ALPACA_ENABLED = bool(ALPACA_API_KEY and ALPACA_SECRET_KEY)
 
+# Connect to Alpaca API
 if ALPACA_ENABLED:
     api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY, BASE_URL, api_version='v2')
 
-# File Paths
+# File paths for saving model and memory
 MODEL_PATH = "DQN_trading_model.keras"
 MEMORY_PATH = "replay_memory.pkl"
 
@@ -54,6 +59,79 @@ class DQNTradingAgent:
         self.unrealized_profit_loss = 0  # UPL
         self.model = self.load_or_build_model()
         self.load_replay_memory()
+
+        is_live_enabled = False
+        if ALPACA_ENABLED and is_live_enabled:  # Does not work on paper api
+            self.check_alpaca_account()
+
+    # ========================
+    # 🔹 ALPACA ACCOUNT CHECK
+    # ========================
+
+    def check_alpaca_account(self):
+        """Fetch account balance from Alpaca API."""
+        if not ALPACA_ENABLED:
+            return
+        account = api.get_account()
+        self.cash = float(account.cash)
+        print(f"💰 Alpaca Account Balance: ${self.cash}")
+
+    # ==========================
+    # 🔹 LIVE MARKET DATA FETCH
+    # ==========================
+
+    def fetch_live_price(self, ticker):
+        """Fetch real-time stock price from Alpaca."""
+        if not ALPACA_ENABLED:
+            return None  
+        barset = api.get_latest_trade(ticker)
+        return barset.price if barset else None
+
+    # ==========================
+    # 🔹 TRADE EXECUTION (LIVE)
+    # ==========================
+
+    def execute_trade(self, action, price, ticker):
+        """Perform real buy/sell orders via Alpaca API."""
+        max_shares = self.max_position_size // price
+
+        # Apply Stop-Loss & Trailing Stop
+        if self.holdings[ticker] > 0 and self.position_prices[ticker]:
+            entry_price = self.position_prices[ticker]
+            loss_limit = entry_price * (1 - self.stop_loss_pct)  
+            profit_limit = entry_price * (1 + self.trailing_stop_pct)  
+
+            if price < loss_limit or price > profit_limit:
+                action = 1  # Force SELL
+
+        # Execute Buy
+        if action == 0 and self.cash > price and self.holdings[ticker] < max_shares:
+            shares = min(self.cash // price, max_shares)
+            self.cash -= shares * price
+            self.holdings[ticker] += shares
+            self.position_prices[ticker] = price
+            if ALPACA_ENABLED:
+                api.submit_order(
+                    symbol=ticker, qty=shares, side='buy',
+                    type='market', time_in_force='gtc'
+                )
+            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares})
+            print(f"✅ Bought {shares} shares of {ticker} at ${price}")
+
+        # Execute Sell
+        elif action == 1 and self.holdings[ticker] > 0:
+            self.realized_profit_loss += (price - self.position_prices[ticker]) * self.holdings[ticker]
+            self.cash += self.holdings[ticker] * price
+            if ALPACA_ENABLED:
+                api.submit_order(
+                    symbol=ticker, qty=self.holdings[ticker], side='sell',
+                    type='market', time_in_force='gtc'
+                )
+            self.holdings[ticker] = 0
+            self.position_prices[ticker] = None
+            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price})
+            print(f"✅ Sold {ticker} at ${price}")
+
 
     '''
     Strategies:
@@ -150,8 +228,8 @@ class DQNTradingAgent:
     def fetch_data(self, ticker):
         """Fetch real-time stock data from Alpaca or generate simulated data."""
         if ALPACA_ENABLED:
-            # bars = api.get_bars(ticker, '1Min', limit=100)
-            bars = api.get_bars(ticker, '1Min', "2021-06-08", "2021-06-08", limit=10)
+            bars = api.get_bars(ticker, '1Min', limit=30)
+            #bars = api.get_bars(ticker, '1Min', "2021-06-08", "2021-06-08", limit=10)
             #[ticker]
             df = pd.DataFrame({
                 'open': [bar.o for bar in bars],
@@ -257,25 +335,37 @@ class DQNTradingAgent:
         # Decay epsilon (less exploration over time)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-
+    
+    # ====================
+    # 🔹 MAIN EXECUTION
+    # ====================
     def run_trading_loop(self, episodes=10):
-        """Run the RL-based trading loop across multiple stocks."""
+        """Run the RL-based trading loop with live execution."""
         for episode in range(episodes):
             for ticker in self.tickers:
+                if ALPACA_ENABLED:
+                    current_price = self.fetch_live_price(ticker)  
+                else:
+                    current_price = random.uniform(100, 200)  
+
+                if current_price is None:
+                    print(f"⚠️ Skipping {ticker}, no live price available.")
+                    continue  
+
                 df = self.fetch_data(ticker)
                 df = self.compute_indicators(df)
                 state = self.get_state(df, ticker)
 
                 action = self.select_action(state)
-                current_price = df.iloc[-1]['close']
                 self.execute_trade(action, current_price, ticker)
-
+                
                 self.calculate_unrealized_profit_loss(df)
                 reward = self.cash + self.unrealized_profit_loss + self.realized_profit_loss
                 next_state = self.get_state(df, ticker)
                 self.memory.append((state, action, reward, next_state))
 
-            self.train_rl_agent()  # ✅ Train after each episode
+            self.train_rl_agent()  
+
 
             print(f"Episode {episode+1} Summary:")
             print(f"💰 Cash: ${self.cash}")
