@@ -7,3 +7,8 @@ tensorflow
 alpaca_trade_api
 cement==2.10.14
 ta-lib
+newsapi-python 
+tweepy 
+vaderSentiment 
+pandas 
+numpy

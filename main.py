@@ -34,9 +34,80 @@ if ALPACA_ENABLED:
 MODEL_PATH = "DQN_trading_model.keras"
 MEMORY_PATH = "replay_memory.pkl"
 
+class Strategy:
+
+    def __init__(self, max_position_size, stop_loss_pct, trailing_stop_pct, gamma, 
+                 epsilon, epsilon_min, epsilon_decay, learning_rate, batch_size):
+        '''
+        Args:
+            max_position_size: Max amount invested per stock	🔼 Increase for more risk, 🔽 Decrease for lower risk
+            gamma: Discount factor (future reward weighting)	🔼 Higher for long-term profits, 🔽 Lower for short-term safety
+            epsilon:	Exploration rate (random trades vs. learned trades)	🔼 Higher means more random trades, 🔽 Lower means more optimal choices
+            epsilon_decay:	How fast exploration reduces over time	🔼 Slower decay increases risk, 🔽 Faster decay stabilizes strategy
+            stop_loss_pct:	Stop-loss percentage (max loss before selling)	🔼 Higher means more risk, 🔽 Lower means safer exits
+            trailing_stop_pct:	Profit lock-in level (auto-sell at profit)	🔼 Lower means safer, 🔽 Higher means more aggressive
+            batch_size:	Training batch size for learning	🔼 Higher means more stable learning, 🔽 Lower adapts faster but is riskier
+
+        '''
+
+        self.max_position_size = max_position_size  # ✅ Divesify positions
+        self.stop_loss_pct = stop_loss_pct  # ✅ 5% Stop Loss
+        self.trailing_stop_pct = trailing_stop_pct  # ✅ 10% Trailing Stop
+        self.gamma = gamma  # ✅ Future reward discount
+        self.epsilon = epsilon  # ✅ Start with high exploration
+        self.epsilon_min = epsilon_min  # ✅ Minimal randomness
+        self.epsilon_decay = epsilon_decay  # ✅ Slowly reduce randomness
+        self.learning_rate = learning_rate  # ✅ Higher values = faster but riskier learning
+        self.batch_size = batch_size  # ✅ Number of trades considered for training
+    
+    @classmethod
+    def conservative(cls):
+        '''🔵 Conservative (Low Risk)
+           ✅ Small position sizes, fast stop-loss, fast exploration decay.'''
+        return cls(
+            max_position_size = 2000,  
+            stop_loss_pct = 0.03,
+            trailing_stop_pct = 0.07,
+            gamma = 0.90,
+            epsilon = 0.8,  
+            epsilon_min = 0.01,
+            epsilon_decay = 0.998,
+            learning_rate = 0.0005,
+            batch_size = 64)
+    
+    @classmethod
+    def balanced(cls):
+        '''🟡 Balanced (Medium Risk)
+           ✅ Default setup with controlled risk.''' 
+        return cls(
+            max_position_size = 4000,
+            stop_loss_pct = 0.05,
+            trailing_stop_pct = 0.10,  
+            gamma = 0.95,
+            epsilon = 1.0, 
+            epsilon_min = 0.01, 
+            epsilon_decay = 0.995, 
+            learning_rate = 0.001, 
+            batch_size = 32)
+    
+    @classmethod
+    def aggresive(cls):
+        '''🔴 Aggressive (High Risk)
+           ✅ Large positions, slow stop-loss, high exploration.'''
+        return cls(        
+            max_position_size = 5000,
+            stop_loss_pct = 0.10,
+            trailing_stop_pct = 0.20,
+            gamma = 0.99,
+            epsilon = 1.2,
+            epsilon_min = 0.01, 
+            epsilon_decay = 0.99,
+            learning_rate = 0.005,
+            batch_size = 16)
+
 class DQNTradingAgent:
 
-    def __init__(self, tickers, cash=20000, max_position_size=4000):
+    def __init__(self, tickers, cash=20000, max_position_size=4000, strategy=None):
         self.tickers = tickers
         self.cash = cash
         self.holdings = {ticker: 0 for ticker in tickers}
@@ -45,25 +116,49 @@ class DQNTradingAgent:
         self.max_position_size = max_position_size
         self.memory = deque(maxlen=2000)
 
-        # Strategy
-        self.stop_loss_pct = 0.05  # ✅ 5% Stop Loss
-        self.trailing_stop_pct = 0.10  # ✅ 10% Trailing Stop
-        self.gamma = 0.95  # ✅ Future reward discount
-        self.epsilon = 1.0  # ✅ Start with high exploration
-        self.epsilon_min = 0.01  # ✅ Minimal randomness
-        self.epsilon_decay = 0.995  # ✅ Slowly reduce randomness
-        self.learning_rate = 0.001  # ✅ Higher values = faster but riskier learning
-        self.batch_size = 32  # ✅ Number of trades considered for training
+        self.strategy = strategy if strategy is not None else Strategy.balanced()
 
         self.realized_profit_loss = 0  # RPL
         self.unrealized_profit_loss = 0  # UPL
         self.model = self.load_or_build_model()
         self.load_replay_memory()
 
-        is_live_enabled = False
-        if ALPACA_ENABLED and is_live_enabled:  # Does not work on paper api
+
+        if ALPACA_ENABLED:
             self.check_alpaca_account()
 
+    # ========================
+    # 🔹 Strategy
+    # ========================
+    @property
+    def stop_loss_pct(self):
+        return self.strategy.stop_loss_pct
+    @property
+    def trailing_stop_pct(self):
+        return self.strategy.trailing_stop_pct
+    @property
+    def gamma(self):
+        return self.strategy.gamma
+    
+    @property
+    def epsilon(self):
+        return self.strategy.epsilon
+    @epsilon.setter
+    def epsilon(self, value):
+        self.strategy.epsilon = value
+
+    @property
+    def epsilon_min(self):
+        return self.strategy.epsilon_min
+    @property
+    def epsilon_decay(self):
+        return self.strategy.epsilon_decay
+    @property
+    def learning_rate(self):
+        return self.strategy.learning_rate
+    @property
+    def batch_size(self):
+        return self.strategy.batch_size
     # ========================
     # 🔹 ALPACA ACCOUNT CHECK
     # ========================
@@ -133,57 +228,6 @@ class DQNTradingAgent:
             print(f"✅ Sold {ticker} at ${price}")
 
 
-    '''
-    Strategies:
-
-    🔵 Conservative (Low Risk)
-
-    ✅ Small position sizes, fast stop-loss, fast exploration decay.
-
-        max_position_size = 2000  
-        stop_loss_pct = 0.03  
-        trailing_stop_pct = 0.07  
-        gamma = 0.90  
-        epsilon = 0.8  
-        epsilon_decay = 0.998  
-        batch_size = 64  
-
-        🟡 Balanced (Medium Risk)
-
-        ✅ Default setup with controlled risk.
-
-            max_position_size = 4000  
-            stop_loss_pct = 0.05  
-            trailing_stop_pct = 0.10  
-            gamma = 0.95  
-            epsilon = 1.0  
-            epsilon_decay = 0.995  
-            batch_size = 32  
-       
-        🔴 Aggressive (High Risk)
-
-        ✅ Large positions, slow stop-loss, high exploration.
-
-            max_position_size = 8000  
-            stop_loss_pct = 0.10  
-            trailing_stop_pct = 0.20  
-            gamma = 0.99  
-            epsilon = 1.2  
-            epsilon_decay = 0.99  
-            batch_size = 16  
-
-    Parameter	        Description	                    How to Adjust Risk
-    max_position_size	Max amount invested per stock	🔼 Increase for more risk, 🔽 Decrease for lower risk
-    gamma	Discount factor (future reward weighting)	🔼 Higher for long-term profits, 🔽 Lower for short-term safety
-    epsilon	Exploration rate (random trades vs. learned trades)	🔼 Higher means more random trades, 🔽 Lower means more optimal choices
-    epsilon_decay	How fast exploration reduces over time	🔼 Slower decay increases risk, 🔽 Faster decay stabilizes strategy
-    stop_loss_pct	Stop-loss percentage (max loss before selling)	🔼 Higher means more risk, 🔽 Lower means safer exits
-    trailing_stop_pct	Profit lock-in level (auto-sell at profit)	🔼 Lower means safer, 🔽 Higher means more aggressive
-    batch_size	Training batch size for learning	🔼 Higher means more stable learning, 🔽 Lower adapts faster but is riskier
-
-    '''
-
-
     def load_or_build_model(self):
         """Load existing model or build a new one."""
         if os.path.exists(MODEL_PATH):
@@ -228,9 +272,7 @@ class DQNTradingAgent:
     def fetch_data(self, ticker):
         """Fetch real-time stock data from Alpaca or generate simulated data."""
         if ALPACA_ENABLED:
-            bars = api.get_bars(ticker, '1Min', limit=30)
-            #bars = api.get_bars(ticker, '1Min', "2021-06-08", "2021-06-08", limit=10)
-            #[ticker]
+            bars = api.get_bars(ticker, '1Min', limit=100)
             df = pd.DataFrame({
                 'open': [bar.o for bar in bars],
                 'high': [bar.h for bar in bars],
@@ -238,9 +280,7 @@ class DQNTradingAgent:
                 'close': [bar.c for bar in bars],
                 'volume': [bar.v for bar in bars]
             })
-            print('Ticker', ticker)
-            for bar in bars:
-                print(bar)
+
         else:
             data = []
             base_price = random.uniform(100, 200)
@@ -277,37 +317,6 @@ class DQNTradingAgent:
             return random.choice([0, 1, 2])
         return np.argmax(self.model.predict(state.reshape(1, -1))[0])
 
-    def execute_trade(self, action, price, ticker):
-        """Perform Buy/Sell/Hold based on RL decision and apply risk management."""
-        max_shares = self.max_position_size // price
-
-        # Stop-Loss / Trailing Stop Check
-        if self.holdings[ticker] > 0 and self.position_prices[ticker]:
-            entry_price = self.position_prices[ticker]
-            loss_limit = entry_price * (1 - self.stop_loss_pct)  # Stop-Loss
-            profit_limit = entry_price * (1 + self.trailing_stop_pct)  # Trailing Stop
-
-            if price < loss_limit:  # Stop-Loss Triggered
-                action = 1  # Force SELL
-            elif price > profit_limit:  # Trailing Stop Triggered
-                action = 1  # Force SELL
-
-        # Execute Buy
-        if action == 0 and self.cash > price and self.holdings[ticker] < max_shares:
-            shares = min(self.cash // price, max_shares)
-            self.cash -= shares * price
-            self.holdings[ticker] += shares
-            self.position_prices[ticker] = price
-            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares})
-
-        # Execute Sell
-        elif action == 1 and self.holdings[ticker] > 0:
-            self.realized_profit_loss += (price - self.position_prices[ticker]) * self.holdings[ticker]
-            self.cash += self.holdings[ticker] * price
-            self.holdings[ticker] = 0
-            self.position_prices[ticker] = None
-            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price})
-
     def calculate_unrealized_profit_loss(self, df):
         """Calculate the unrealized profit/loss for open positions."""
         self.unrealized_profit_loss = sum(
@@ -325,13 +334,10 @@ class DQNTradingAgent:
         for state, action, reward, next_state in batch:
             target = reward
             if next_state is not None:
-                target += self.gamma * np.amax(self.model.predict(next_state.reshape(1, -1))[0])
-
-            target_f = self.model.predict(state.reshape(1, -1))
+                target += self.gamma * np.amax(self.model.predict(next_state.reshape(1, -1), verbose=0)[0])
+            target_f = self.model.predict(state.reshape(1, -1), verbose=0)
             target_f[0][action] = target  # Update target value for action taken
-
             self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0)  # Train model
-
         # Decay epsilon (less exploration over time)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -374,20 +380,22 @@ class DQNTradingAgent:
             print(f"⚖️ Position Limits: ${self.max_position_size} per stock")
             print(f"🔻 Stop-Loss: {self.stop_loss_pct * 100:.1f}%")
             print(f"🚀 Trailing Stop: {self.trailing_stop_pct * 100:.1f}%")
-            print(f"Holdings: {self.holdings}")
+            print(f"🔵 Holdings: {self.holdings}")
             print("=" * 50)            
 
             if (episode + 1) % 5 == 0:
                 self.save_model()
                 self.save_replay_memory()
             time.sleep(1)
-
+            
+        self.check_alpaca_account()
         print("Final Portfolio:")
         for tx in self.trade_log:
             print(tx)
 
 
 # Run the Algorithm
-tickers = ['AAPL', 'MSFT', 'GOOG', 'TSLA']
-rl_trader = DQNTradingAgent(tickers)
+# tickers = ['AAPL', 'MSFT', 'GOOG', '']
+tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
+rl_trader = DQNTradingAgent(tickers, strategy=Strategy.conservative())
 rl_trader.run_trading_loop()
