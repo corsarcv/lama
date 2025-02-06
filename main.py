@@ -22,6 +22,7 @@ from utils.constants import APCA_API_KEY_ID, APCA_API_SECRET_KEY
 # Alpaca API Keys (Replace with your actual keys)
 ALPACA_API_KEY = Config()[APCA_API_KEY_ID]  # Add your Alpaca API Key
 ALPACA_SECRET_KEY = Config()[APCA_API_SECRET_KEY]  # Add your Alpaca Secret Key
+
 BASE_URL = "https://paper-api.alpaca.markets" # Use live trading by changing to live endpoint
 
 ALPACA_ENABLED = bool(ALPACA_API_KEY and ALPACA_SECRET_KEY)
@@ -123,6 +124,8 @@ class DQNTradingAgent:
         self.model = self.load_or_build_model()
         self.load_replay_memory()
 
+        # Cache historical data to prevent redundant API calls
+        self.historical_data = {ticker: None for ticker in tickers}
 
         if ALPACA_ENABLED:
             self.check_alpaca_account()
@@ -178,9 +181,17 @@ class DQNTradingAgent:
     def fetch_live_price(self, ticker):
         """Fetch real-time stock price from Alpaca."""
         if not ALPACA_ENABLED:
-            return None  
-        barset = api.get_latest_trade(ticker)
-        return barset.price if barset else None
+            return random.uniform(100, 200)  # Simulated live price
+        try:
+            barset = api.get_latest_trade(ticker)
+            if barset:
+                new_data_row = {'open': barset.price, 'close': barset.price, 'high': barset.price, 'low': barset.price, 'volume': 1}
+                self.historical_data = self.historical_data.append(new_data_row, ignore_index=True)
+                return barset.price 
+            else: return None
+        except:
+            return None
+
 
     # ==========================
     # 🔹 TRADE EXECUTION (LIVE)
@@ -269,6 +280,32 @@ class DQNTradingAgent:
             pickle.dump(self.memory, f)
         print("Replay memory saved successfully.")
 
+    # ==========================
+    # 🔹 DATA FETCHING & HANDLING
+    # ==========================
+    def fetch_historical_data(self, ticker):
+        """Fetch 100-bar historical stock data once per ticker."""
+        if ALPACA_ENABLED:
+            bars = api.get_bars(ticker, '1Min', limit=100)
+            df = pd.DataFrame({
+                'open': [bar.o for bar in bars],
+                'high': [bar.h for bar in bars],
+                'low': [bar.l for bar in bars],
+                'close': [bar.c for bar in bars],
+                'volume': [bar.v for bar in bars]
+            })
+            self.historical_data[ticker] = df
+        else:
+            data = []
+            base_price = random.uniform(100, 200)
+            for _ in range(100):
+                price = base_price * random.uniform(0.98, 1.02)
+                data.append({'open': price, 'high': price * 1.01, 'low': price * 0.99, 'close': price, 'volume': random.randint(1000, 5000)})
+            self.historical_data[ticker] = pd.DataFrame(data)
+    
+    # ==========================
+    # 🔹 DATA FETCHING & HANDLING OBSOLETE, TO BE REMOVED
+    # ==========================
     def fetch_data(self, ticker):
         """Fetch real-time stock data from Alpaca or generate simulated data."""
         if ALPACA_ENABLED:
@@ -340,25 +377,24 @@ class DQNTradingAgent:
             self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0)  # Train model
         # Decay epsilon (less exploration over time)
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+            self.epsilon *= self.epsilon_Cdecay
     
     # ====================
-    # 🔹 MAIN EXECUTION
+    # 🔹 MAIN EXECUTION POINT
     # ====================
-    def run_trading_loop(self, episodes=10):
-        """Run the RL-based trading loop with live execution."""
+    def run_trading_loop(self, episodes=10, sleep_time=10):
+        """Run the RL-based trading loop efficiently with optimized data fetching."""
+        for ticker in self.tickers:
+            self.fetch_historical_data(ticker)  # Fetch once per session
+
         for episode in range(episodes):
             for ticker in self.tickers:
-                if ALPACA_ENABLED:
-                    current_price = self.fetch_live_price(ticker)  
-                else:
-                    current_price = random.uniform(100, 200)  
-
+                current_price = self.fetch_live_price(ticker)
                 if current_price is None:
                     print(f"⚠️ Skipping {ticker}, no live price available.")
                     continue  
 
-                df = self.fetch_data(ticker)
+                df = self.historical_data[ticker]
                 df = self.compute_indicators(df)
                 state = self.get_state(df, ticker)
 
@@ -375,18 +411,20 @@ class DQNTradingAgent:
 
             print(f"Episode {episode+1} Summary:")
             print(f"💰 Cash: ${self.cash}")
-            print(f"📊 UPL: ${self.unrealized_profit_loss:.2f} (Unrealized Profit/Loss)")
+            print(f"💵 UPL: ${self.unrealized_profit_loss:.2f} (Unrealized Profit/Loss)")
             print(f"💵 RPL: ${self.realized_profit_loss:.2f} (Realized Profit/Loss)")
             print(f"⚖️ Position Limits: ${self.max_position_size} per stock")
             print(f"🔻 Stop-Loss: {self.stop_loss_pct * 100:.1f}%")
             print(f"🚀 Trailing Stop: {self.trailing_stop_pct * 100:.1f}%")
-            print(f"🔵 Holdings: {self.holdings}")
+            print(f"📊 Holdings: {self.holdings}")
             print("=" * 50)            
 
             if (episode + 1) % 5 == 0:
                 self.save_model()
                 self.save_replay_memory()
-            time.sleep(1)
+            
+            if sleep_time:
+                time.sleep(sleep_time)
             
         self.check_alpaca_account()
         print("Final Portfolio:")
