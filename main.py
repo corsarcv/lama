@@ -66,15 +66,15 @@ class Strategy:
         '''🔵 Conservative (Low Risk)
            ✅ Small position sizes, fast stop-loss, fast exploration decay.'''
         return cls(
-            max_position_size = 2000,  
+            max_position_size = 1000,  
             stop_loss_pct = 0.03,
             trailing_stop_pct = 0.07,
-            gamma = 0.90,
-            epsilon = 0.8,  
+            gamma = 0.80,
+            epsilon = 0.75,  
             epsilon_min = 0.01,
             epsilon_decay = 0.998,
-            learning_rate = 0.0005,
-            batch_size = 64)
+            learning_rate = 0.0003,
+            batch_size = 100)
     
     @classmethod
     def balanced(cls):
@@ -194,7 +194,8 @@ class DQNTradingAgent:
                 "close": latest_bar.c,
                 "volume": latest_bar.v
             }
-            self.historical_data = self.historical_data.append(latest_data, ignore_index=True)
+            latest_df = pd.DataFrame([latest_data]) 
+            self.historical_data[ticker] = pd.concat([self.historical_data[ticker], latest_df], ignore_index=True)
             return latest_bar.c
             # barset = api.get_latest_trade(ticker)
             # if barset:
@@ -202,7 +203,8 @@ class DQNTradingAgent:
             #     self.historical_data = self.historical_data.append(new_data_row, ignore_index=True)
             #     return barset.price 
             # else: return None
-        except:
+        except Exception as ex:
+            print("Error:", ex)
             return None
 
 
@@ -365,7 +367,7 @@ class DQNTradingAgent:
         """Choose an action: Buy (0), Sell (1), Hold (2)."""
         if np.random.rand() <= self.epsilon:
             return random.choice([0, 1, 2])
-        return np.argmax(self.model.predict(state.reshape(1, -1))[0])
+        return np.argmax(self.model.predict(state.reshape(1, -1), verbose=0)[0])
 
     def calculate_unrealized_profit_loss(self, df):
         """Calculate the unrealized profit/loss for open positions."""
@@ -390,12 +392,12 @@ class DQNTradingAgent:
             self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0)  # Train model
         # Decay epsilon (less exploration over time)
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_Cdecay
+            self.epsilon *= self.epsilon_decay
     
     # ====================
     # 🔹 MAIN EXECUTION POINT
     # ====================
-    def run_trading_loop(self, episodes=10, sleep_time=60):
+    def run_trading_loop(self, episodes=3, sleep_time=2):
         """Run the RL-based trading loop efficiently with optimized data fetching."""
         for ticker in self.tickers:
             self.fetch_historical_data(ticker)  # Fetch once per session
@@ -454,6 +456,7 @@ class DQNTradingAgent:
 
 # Run the Algorithm
 # tickers = ['AAPL', 'MSFT', 'GOOG', '']
-tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
+# tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
+tickers = ['ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 'AXON', 'BAC', 'BKNG', 'BSX']
 rl_trader = DQNTradingAgent(tickers, strategy=Strategy.conservative())
-rl_trader.run_trading_loop()
+rl_trader.run_trading_loop(episodes=60, sleep_time=60)

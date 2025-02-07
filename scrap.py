@@ -1,9 +1,6 @@
-numbers = [1010,1020.1, 1030.3, 1040.5, 1050.7]
-from scipy.stats import linregress
-
-x = list(range(len(numbers)))  # x-axis values
-slope, intercept, r_value, p_value, std_err = linregress(x, numbers)  
-print(slope, intercept, r_value, p_value, std_err)
-import statistics
-print(slope/statistics.mean(numbers))
-
+with open('./data/symbols/gainers-52wk.csv', 'r') as f:
+    for line in f:
+        if line.startswith('"'):
+            print('%s,"%s' % (line[1:line.index(' ') ], line[line.index(' ') + 1:-1]))
+        else:
+            print('%s,%s' % (line[:line.index(' ')], line[line.index(' ') + 1:-1]))
