@@ -3,3 +3,4 @@ DQN_trading_model.keras
 replay_memory.pkl
 .venv
 data/dumps/*
+__pycache__
