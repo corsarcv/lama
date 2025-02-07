@@ -4,3 +4,4 @@ replay_memory.pkl
 .venv
 data/dumps/*
 __pycache__
+.vscode
