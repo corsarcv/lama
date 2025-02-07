@@ -125,6 +125,11 @@ class DQNTradingAgent:
         self.model = self.load_or_build_model()
         self.load_replay_memory()
 
+        # Prioritized Experience Replay (PER) Sertings
+        self.alpha = 0.6  # How much prioritization to use (0 = uniform, 1 = full prioritization)
+        self.beta = 0.4  # Importance sampling correction factor (starts low, increases)
+        self.beta_increment = 0.001  # Increases beta over time
+
         # Cache historical data to prevent redundant API calls
         self.historical_data = {ticker: None for ticker in tickers}
 
@@ -378,23 +383,63 @@ class DQNTradingAgent:
             self.holdings[t] * (df.iloc[-1]['close'] - self.position_prices[t]) if self.position_prices[t] else 0
             for t in self.tickers
         )
+    def store_experience(self, state, action, reward, next_state):
+        """Store experience with initial high priority."""
+        max_priority = max([x[0] for x in self.memory], default=1.0)  # Get max priority
+        self.memory.append((max_priority, (state, action, reward, next_state)))
+
+    def get_prioritized_sample(self):
+        """Retrieve a batch based on priority sampling."""
+        if len(self.memory) < self.batch_size:
+            return []
+
+        priorities = np.array([x[0] for x in self.memory])  # Extract priorities
+        probs = priorities ** self.alpha  # Apply prioritization
+        probs /= probs.sum()  # Normalize probabilities
+
+        indices = np.random.choice(len(self.memory), self.batch_size, p=probs)  # Sample indices
+        batch = [self.memory[i][1] for i in indices]  # Get experiences
+
+        # Compute importance sampling weights
+        importance_weights = (1 / len(self.memory) * 1 / probs[indices]) ** self.beta
+        importance_weights /= importance_weights.max()  # Normalize
+
+        # Increase beta over time to reduce bias
+        self.beta = min(1.0, self.beta + self.beta_increment)
+
+        return batch, indices, importance_weights
+
+    def update_priorities(self, indices, td_errors):
+        """Update experience priorities based on TD error."""
+        for i, error in zip(indices, td_errors):
+            self.memory[i] = (abs(error) + 1e-5, self.memory[i][1])  # Avoid zero priority
+
 
     def train_rl_agent(self):
-        """Train the DQN model using experience replay."""
+        """Train the RL model using Prioritized Experience Replay (PER)."""
         if len(self.memory) < self.batch_size:
             print("⚠️ Not enough experiences to train yet")
             return
 
-        batch = random.sample(self.memory, self.batch_size)
+        batch, indices, importance_weights = self.get_prioritized_sample()
+        td_errors = []
 
-        for state, action, reward, next_state in batch:
+        for i, (state, action, reward, next_state) in enumerate(batch):
             target = reward
             if next_state is not None:
                 target += self.gamma * np.amax(self.model.predict(next_state.reshape(1, -1), verbose=0)[0])
+
             target_f = self.model.predict(state.reshape(1, -1), verbose=0)
-            target_f[0][action] = target  # Update target value for action taken
-            self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0)  # Train model
-        # Decay epsilon (less exploration over time)
+            td_error = abs(target - target_f[0][action])  # Compute TD error
+            td_errors.append(td_error)
+
+            target_f[0][action] = target  # Update target Q-value
+            self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0, sample_weight=np.array([importance_weights[i]]))  # Apply importance sampling weight
+
+        # Update priorities in memory
+        self.update_priorities(indices, td_errors)
+
+        # Decay exploration rate
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
     
@@ -432,6 +477,9 @@ class DQNTradingAgent:
                 #It is crucial in RL to form (state, action, reward, next_state) tuples to train the agent.
                 next_state = self.get_state(df, ticker)
                 self.memory.append((state, action, reward, next_state))
+                
+                # ✅ Store experience for PER-based replay
+                self.store_experience(state, action, reward, next_state) 
 
             self.train_rl_agent()  
 
