@@ -8,9 +8,9 @@ import random
 import alpaca_trade_api as tradeapi
 import tensorflow as tf
 from collections import deque
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import Sequential, load_model # type: ignore
+from tensorflow.keras.layers import Dense, Dropout # type: ignore
+from tensorflow.keras.optimizers import Adam # type: ignore
 
 from config import Config
 from utils.constants import APCA_API_KEY_ID, APCA_API_SECRET_KEY
@@ -183,12 +183,25 @@ class DQNTradingAgent:
         if not ALPACA_ENABLED:
             return random.uniform(100, 200)  # Simulated live price
         try:
-            barset = api.get_latest_trade(ticker)
-            if barset:
-                new_data_row = {'open': barset.price, 'close': barset.price, 'high': barset.price, 'low': barset.price, 'volume': 1}
-                self.historical_data = self.historical_data.append(new_data_row, ignore_index=True)
-                return barset.price 
-            else: return None
+            latest_bar = api.get_latest_bar(ticker)
+            if not latest_bar:
+                return None
+
+            latest_data = {
+                "open": latest_bar.o,
+                "high": latest_bar.h,
+                "low": latest_bar.l,
+                "close": latest_bar.c,
+                "volume": latest_bar.v
+            }
+            self.historical_data = self.historical_data.append(latest_data, ignore_index=True)
+            return latest_bar.c
+            # barset = api.get_latest_trade(ticker)
+            # if barset:
+            #     new_data_row = {'open': barset.price, 'close': barset.price, 'high': barset.price, 'low': barset.price, 'volume': 1}
+            #     self.historical_data = self.historical_data.append(new_data_row, ignore_index=True)
+            #     return barset.price 
+            # else: return None
         except:
             return None
 
@@ -382,7 +395,7 @@ class DQNTradingAgent:
     # ====================
     # 🔹 MAIN EXECUTION POINT
     # ====================
-    def run_trading_loop(self, episodes=10, sleep_time=10):
+    def run_trading_loop(self, episodes=10, sleep_time=60):
         """Run the RL-based trading loop efficiently with optimized data fetching."""
         for ticker in self.tickers:
             self.fetch_historical_data(ticker)  # Fetch once per session
@@ -396,6 +409,9 @@ class DQNTradingAgent:
 
                 df = self.historical_data[ticker]
                 df = self.compute_indicators(df)
+                
+                # This captures the current state of the market before any trade decision is made.
+                #The RL agent needs to evaluate the current conditions before taking an action.
                 state = self.get_state(df, ticker)
 
                 action = self.select_action(state)
@@ -403,6 +419,10 @@ class DQNTradingAgent:
                 
                 self.calculate_unrealized_profit_loss(df)
                 reward = self.cash + self.unrealized_profit_loss + self.realized_profit_loss
+ 
+                # After the action is taken (e.g., executing a trade), the state of the environment changes.
+                #This captures the new state after the action has influenced the market position (e.g., balance, holdings).
+                #It is crucial in RL to form (state, action, reward, next_state) tuples to train the agent.
                 next_state = self.get_state(df, ticker)
                 self.memory.append((state, action, reward, next_state))
 
