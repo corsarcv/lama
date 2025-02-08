@@ -1,4 +1,5 @@
 import os
+import datetime
 import pickle
 import numpy as np
 import pandas as pd
@@ -66,15 +67,15 @@ class Strategy:
         '''🔵 Conservative (Low Risk)
            ✅ Small position sizes, fast stop-loss, fast exploration decay.'''
         return cls(
-            max_position_size = 2000,  
-            stop_loss_pct = 0.03,
-            trailing_stop_pct = 0.07,
-            gamma = 0.90,
-            epsilon = 0.8,  
+            max_position_size = 1000,  
+            stop_loss_pct = 0.02,
+            trailing_stop_pct = 0.055,
+            gamma = 0.80,
+            epsilon = 0.75,  
             epsilon_min = 0.01,
             epsilon_decay = 0.998,
-            learning_rate = 0.0005,
-            batch_size = 64)
+            learning_rate = 0.0003,
+            batch_size = 200)
     
     @classmethod
     def balanced(cls):
@@ -89,7 +90,7 @@ class Strategy:
             epsilon_min = 0.01, 
             epsilon_decay = 0.995, 
             learning_rate = 0.001, 
-            batch_size = 32)
+            batch_size = 50)
     
     @classmethod
     def aggresive(cls):
@@ -104,18 +105,18 @@ class Strategy:
             epsilon_min = 0.01, 
             epsilon_decay = 0.99,
             learning_rate = 0.005,
-            batch_size = 16)
+            batch_size = 24)
 
 class DQNTradingAgent:
 
-    def __init__(self, tickers, cash=20000, max_position_size=4000, strategy=None):
+    def __init__(self, tickers, cash=20000, strategy=None):
         self.tickers = tickers
         self.cash = cash
         self.holdings = {ticker: 0 for ticker in tickers}
         self.position_prices = {ticker: None for ticker in tickers}
         self.trade_log = []
-        self.max_position_size = max_position_size
         self.memory = deque(maxlen=2000)
+        self.historical_batch_size = 100
 
         self.strategy = strategy if strategy is not None else Strategy.balanced()
 
@@ -123,6 +124,11 @@ class DQNTradingAgent:
         self.unrealized_profit_loss = 0  # UPL
         self.model = self.load_or_build_model()
         self.load_replay_memory()
+
+        # Prioritized Experience Replay (PER) Sertings
+        self.alpha = 0.6  # How much prioritization to use (0 = uniform, 1 = full prioritization)
+        self.beta = 0.4  # Importance sampling correction factor (starts low, increases)
+        self.beta_increment = 0.001  # Increases beta over time
 
         # Cache historical data to prevent redundant API calls
         self.historical_data = {ticker: None for ticker in tickers}
@@ -162,6 +168,10 @@ class DQNTradingAgent:
     @property
     def batch_size(self):
         return self.strategy.batch_size
+    @property
+    def max_position_size(self):
+        return self.strategy.max_position_size
+    
     # ========================
     # 🔹 ALPACA ACCOUNT CHECK
     # ========================
@@ -188,23 +198,69 @@ class DQNTradingAgent:
                 return None
 
             latest_data = {
+                "timestamp": latest_bar.t,
                 "open": latest_bar.o,
                 "high": latest_bar.h,
                 "low": latest_bar.l,
                 "close": latest_bar.c,
                 "volume": latest_bar.v
             }
-            self.historical_data = self.historical_data.append(latest_data, ignore_index=True)
+
+            # Update historical prices dataset
+            latest_df = pd.DataFrame([latest_data]) 
+            self.historical_data[ticker] = pd.concat([self.historical_data[ticker], latest_df], ignore_index=True)
+            self.perform_timestamp_calculations_on_historical_prices(self.historical_data[ticker])
+
             return latest_bar.c
-            # barset = api.get_latest_trade(ticker)
-            # if barset:
-            #     new_data_row = {'open': barset.price, 'close': barset.price, 'high': barset.price, 'low': barset.price, 'volume': 1}
-            #     self.historical_data = self.historical_data.append(new_data_row, ignore_index=True)
-            #     return barset.price 
-            # else: return None
-        except:
+        except Exception as ex:
+            print("⚠️ Error on fetching historical data:", ex)
             return None
 
+    # ==========================
+    # 🔹 HISTORICAL DATA FETCHING & HANDLING
+    # ==========================
+    def fetch_historical_data(self, ticker):
+        """Fetch historical stock data once per ticker."""
+        if ALPACA_ENABLED:
+            bars = api.get_bars(ticker, '1Min', limit=self.historical_batch_size, sort='desc')
+            
+            bars.df.reset_index()  # Reset index to move timestamp from index to a column
+            
+            df = pd.DataFrame({
+                'timestamp': [bar.t for bar in bars],  # UTC Timestamps from Alpaca
+                'open': [bar.o for bar in bars],
+                'high': [bar.h for bar in bars],
+                'low': [bar.l for bar in bars],
+                'close': [bar.c for bar in bars],
+                'volume': [bar.v for bar in bars],
+            })
+            # Sorting by timestamp  because it is in desc order now
+            df = df.sort_values(by='timestamp', ascending=True) 
+            df = df.reset_index(drop=True)
+            
+            self.perform_timestamp_calculations_on_historical_prices(df)
+            self.historical_data[ticker] = df
+        else:
+            data = []
+            base_price = random.uniform(100, 200)
+            for _ in range(100):
+                price = base_price * random.uniform(0.98, 1.02)
+                data.append({'open': price, 'high': price * 1.01, 'low': price * 0.99, 
+                             'close': price, 'volume': random.randint(1000, 5000),
+                             'timestamp': datetime.utcnow()})
+                             
+            df = pd.DataFrame(data)
+            df['minutes_since_open'] = df.index
+            self.historical_data[ticker] = df
+    
+    def perform_timestamp_calculations_on_historical_prices(self, df):
+            # Convert timestamps to datetime format and adjust to EST
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms', utc=True).dt.tz_convert('America/New_York')
+
+            # Extract time-based features
+            df['hour'] = df['timestamp'].dt.hour
+            df['minute'] = df['timestamp'].dt.minute
+            df['minutes_since_open'] = (df['hour'] - 9) * 60 + df['minute']  # Market opens at 9:30 AM EST
 
     # ==========================
     # 🔹 TRADE EXECUTION (LIVE)
@@ -255,16 +311,16 @@ class DQNTradingAgent:
     def load_or_build_model(self):
         """Load existing model or build a new one."""
         if os.path.exists(MODEL_PATH):
-            print("Loading saved model...")
+            print("⏳ Loading saved model...")
             return load_model(MODEL_PATH)
         else:
-            print("No saved model found, building a new one...")
+            print("⚠️ No saved model found, building a new one...")
             return self.build_dqn_model()
 
     def build_dqn_model(self):
-        """Builds the Deep Q-Network (DQN) model."""
+        """Builds the Deep Q-Network (DQN) model, now including time features."""
         model = Sequential([
-            Dense(64, activation='relu', input_dim=10),
+            Dense(64, activation='relu', input_dim=11),  # Updated from 10 → 11 features
             Dropout(0.2),
             Dense(64, activation='relu'),
             Dropout(0.2),
@@ -274,72 +330,24 @@ class DQNTradingAgent:
         return model
 
     def save_model(self):
-        """Saves the trained model to disk."""
+        """⏳ Saves the trained model to disk."""
         self.model.save(MODEL_PATH)
-        print("Model saved successfully.")
+        print("💾 Model saved successfully.")
 
     def load_replay_memory(self):
         """Loads replay memory from disk."""
         if os.path.exists(MEMORY_PATH):
-            print("Loading replay memory...")
+            print("⏳ Loading replay memory...")
             with open(MEMORY_PATH, "rb") as f:
                 self.memory = pickle.load(f)
         else:
-            print("No replay memory found, starting fresh.")
+            print("⚠️ No replay memory found, starting fresh.")
 
     def save_replay_memory(self):
-        """Saves replay memory to disk."""
+        """💾 Saves replay memory to disk."""
         with open(MEMORY_PATH, "wb") as f:
             pickle.dump(self.memory, f)
-        print("Replay memory saved successfully.")
-
-    # ==========================
-    # 🔹 DATA FETCHING & HANDLING
-    # ==========================
-    def fetch_historical_data(self, ticker):
-        """Fetch 100-bar historical stock data once per ticker."""
-        if ALPACA_ENABLED:
-            bars = api.get_bars(ticker, '1Min', limit=100)
-            df = pd.DataFrame({
-                'open': [bar.o for bar in bars],
-                'high': [bar.h for bar in bars],
-                'low': [bar.l for bar in bars],
-                'close': [bar.c for bar in bars],
-                'volume': [bar.v for bar in bars]
-            })
-            self.historical_data[ticker] = df
-        else:
-            data = []
-            base_price = random.uniform(100, 200)
-            for _ in range(100):
-                price = base_price * random.uniform(0.98, 1.02)
-                data.append({'open': price, 'high': price * 1.01, 'low': price * 0.99, 'close': price, 'volume': random.randint(1000, 5000)})
-            self.historical_data[ticker] = pd.DataFrame(data)
-    
-    # ==========================
-    # 🔹 DATA FETCHING & HANDLING OBSOLETE, TO BE REMOVED
-    # ==========================
-    def fetch_data(self, ticker):
-        """Fetch real-time stock data from Alpaca or generate simulated data."""
-        if ALPACA_ENABLED:
-            bars = api.get_bars(ticker, '1Min', limit=100)
-            df = pd.DataFrame({
-                'open': [bar.o for bar in bars],
-                'high': [bar.h for bar in bars],
-                'low': [bar.l for bar in bars],
-                'close': [bar.c for bar in bars],
-                'volume': [bar.v for bar in bars]
-            })
-
-        else:
-            data = []
-            base_price = random.uniform(100, 200)
-            for _ in range(100):
-                price = base_price * random.uniform(0.98, 1.02)
-                data.append({'open': price, 'high': price * 1.01, 'low': price * 0.99, 'close': price, 'volume': random.randint(1000, 5000)})
-            df = pd.DataFrame(data)
-
-        return df
+        print("✅ Replay memory saved successfully.")
 
     def compute_indicators(self, df):
         """Calculate RSI, MACD, and EMA for RL training."""
@@ -353,19 +361,21 @@ class DQNTradingAgent:
         return df
 
     def get_state(self, df, ticker):
-        """Convert stock data into RL state vector."""
-        latest = df.iloc[-1]
+        """Convert stock data into RL state vector including time-based features."""
+        latest = df.iloc[-1]  # Get the most recent bar
+
         return np.array([
             latest['close'], latest['volume'], latest['EMA50'], latest['EMA200'],
             latest['MACD'], latest['MACD_signal'], latest['RSI'],
-            self.cash, self.holdings[ticker], latest['close'] - latest['EMA50']
+            self.cash, self.holdings[ticker],
+            latest['minutes_since_open']
         ])
 
     def select_action(self, state):
         """Choose an action: Buy (0), Sell (1), Hold (2)."""
         if np.random.rand() <= self.epsilon:
             return random.choice([0, 1, 2])
-        return np.argmax(self.model.predict(state.reshape(1, -1))[0])
+        return np.argmax(self.model.predict(state.reshape(1, -1), verbose=0)[0])
 
     def calculate_unrealized_profit_loss(self, df):
         """Calculate the unrealized profit/loss for open positions."""
@@ -373,33 +383,75 @@ class DQNTradingAgent:
             self.holdings[t] * (df.iloc[-1]['close'] - self.position_prices[t]) if self.position_prices[t] else 0
             for t in self.tickers
         )
+    def store_experience(self, state, action, reward, next_state):
+        """Store experience with initial high priority."""
+        max_priority = max([x[0] for x in self.memory], default=1.0)  # Get max priority
+        self.memory.append((max_priority, (state, action, reward, next_state)))
+
+    def get_prioritized_sample(self):
+        """Retrieve a batch based on priority sampling."""
+        if len(self.memory) < self.batch_size:
+            return []
+
+        priorities = np.array([x[0] for x in self.memory])  # Extract priorities
+        probs = priorities ** self.alpha  # Apply prioritization
+        probs /= probs.sum()  # Normalize probabilities
+
+        indices = np.random.choice(len(self.memory), self.batch_size, p=probs)  # Sample indices
+        batch = [self.memory[i][1] for i in indices]  # Get experiences
+
+        # Compute importance sampling weights
+        importance_weights = (1 / len(self.memory) * 1 / probs[indices]) ** self.beta
+        importance_weights /= importance_weights.max()  # Normalize
+
+        # Increase beta over time to reduce bias
+        self.beta = min(1.0, self.beta + self.beta_increment)
+
+        return batch, indices, importance_weights
+
+    def update_priorities(self, indices, td_errors):
+        """Update experience priorities based on TD error."""
+        for i, error in zip(indices, td_errors):
+            self.memory[i] = (abs(error) + 1e-5, self.memory[i][1])  # Avoid zero priority
+
 
     def train_rl_agent(self):
-        """Train the DQN model using experience replay."""
+        """Train the RL model using Prioritized Experience Replay (PER)."""
         if len(self.memory) < self.batch_size:
-            return  # Not enough experiences to train yet
+            print("⚠️ Not enough experiences to train yet")
+            return
 
-        batch = random.sample(self.memory, self.batch_size)
+        batch, indices, importance_weights = self.get_prioritized_sample()
+        td_errors = []
 
-        for state, action, reward, next_state in batch:
+        for i, (state, action, reward, next_state) in enumerate(batch):
             target = reward
             if next_state is not None:
                 target += self.gamma * np.amax(self.model.predict(next_state.reshape(1, -1), verbose=0)[0])
+
             target_f = self.model.predict(state.reshape(1, -1), verbose=0)
-            target_f[0][action] = target  # Update target value for action taken
-            self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0)  # Train model
-        # Decay epsilon (less exploration over time)
+            td_error = abs(target - target_f[0][action])  # Compute TD error
+            td_errors.append(td_error)
+
+            target_f[0][action] = target  # Update target Q-value
+            self.model.fit(state.reshape(1, -1), target_f, epochs=1, verbose=0, sample_weight=np.array([importance_weights[i]]))  # Apply importance sampling weight
+
+        # Update priorities in memory
+        self.update_priorities(indices, td_errors)
+
+        # Decay exploration rate
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_Cdecay
+            self.epsilon *= self.epsilon_decay
     
     # ====================
     # 🔹 MAIN EXECUTION POINT
     # ====================
-    def run_trading_loop(self, episodes=10, sleep_time=60):
+    def run_trading_loop(self, episodes=3, sleep_time=2):
         """Run the RL-based trading loop efficiently with optimized data fetching."""
         for ticker in self.tickers:
             self.fetch_historical_data(ticker)  # Fetch once per session
-
+        print('✅ Loaded historical prices')
+        print("-" * 50) 
         for episode in range(episodes):
             for ticker in self.tickers:
                 current_price = self.fetch_live_price(ticker)
@@ -425,11 +477,14 @@ class DQNTradingAgent:
                 #It is crucial in RL to form (state, action, reward, next_state) tuples to train the agent.
                 next_state = self.get_state(df, ticker)
                 self.memory.append((state, action, reward, next_state))
+                
+                # ✅ Store experience for PER-based replay
+                self.store_experience(state, action, reward, next_state) 
 
             self.train_rl_agent()  
 
-
-            print(f"Episode {episode+1} Summary:")
+            
+            print(f"=== Episode {episode+1} Summary:")
             print(f"💰 Cash: ${self.cash}")
             print(f"💵 UPL: ${self.unrealized_profit_loss:.2f} (Unrealized Profit/Loss)")
             print(f"💵 RPL: ${self.realized_profit_loss:.2f} (Realized Profit/Loss)")
@@ -453,7 +508,11 @@ class DQNTradingAgent:
 
 
 # Run the Algorithm
-# tickers = ['AAPL', 'MSFT', 'GOOG', '']
-tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
+tickers = ['AAPL']
+# tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
+# tickers = [
+#     'ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 
+#     'AXON', 'BAC', 'BKNG', 'BSX', 'C', 'CINF', 'COST', 'CPAY', 'CPRT', 'DE'
+# ]
 rl_trader = DQNTradingAgent(tickers, strategy=Strategy.conservative())
-rl_trader.run_trading_loop()
+rl_trader.run_trading_loop(episodes=3, sleep_time=1)
