@@ -35,6 +35,7 @@ if ALPACA_ENABLED:
 # File paths for saving model and memory
 MODEL_PATH = "DQN_trading_model.keras"
 MEMORY_PATH = "replay_memory.pkl"
+CYCLES_COUNT_PATN = "training_stats.pkl"
 
 class Strategy:
 
@@ -117,7 +118,8 @@ class DQNTradingAgent:
         self.trade_log = []
         self.memory = deque(maxlen=2000)
         self.historical_batch_size = 100
-
+        self.training_cycles = 0  # Track the number of learning updates
+        
         self.strategy = strategy if strategy is not None else Strategy.balanced()
 
         self.realized_profit_loss = 0  # RPL
@@ -309,12 +311,20 @@ class DQNTradingAgent:
 
 
     def load_or_build_model(self):
-        """Load existing model or build a new one."""
+        """Load existing model and training cycle stats, or create a new one."""
         if os.path.exists(MODEL_PATH):
-            print("⏳ Loading saved model...")
+            print("📥 Loading saved model...")
+            self.training_cycles = 0  # Default
+            
+            if os.path.exists(CYCLES_COUNT_PATN):
+                with open(CYCLES_COUNT_PATN, "rb") as f:
+                    stats = pickle.load(f)
+                    self.training_cycles = stats.get("training_cycles", 0)
+            
             return load_model(MODEL_PATH)
         else:
-            print("⚠️ No saved model found, building a new one...")
+            print("⚙️ No saved model found, building a new one...")
+            self.training_cycles = 0  # Start fresh
             return self.build_dqn_model()
 
     def build_dqn_model(self):
@@ -330,9 +340,14 @@ class DQNTradingAgent:
         return model
 
     def save_model(self):
-        """⏳ Saves the trained model to disk."""
+        """Saves the trained model and training cycle count to disk."""
         self.model.save(MODEL_PATH)
-        print("💾 Model saved successfully.")
+        
+        # Save training stats
+        with open("training_stats.pkl", "wb") as f:
+            pickle.dump({CYCLES_COUNT_PATN: self.training_cycles}, f)
+        
+        print(f"💾 Model saved. Training cycles: {self.training_cycles}")
 
     def load_replay_memory(self):
         """Loads replay memory from disk."""
@@ -439,10 +454,17 @@ class DQNTradingAgent:
         # Update priorities in memory
         self.update_priorities(indices, td_errors)
 
-        # Decay exploration rate
+        # Increment training cycle count
+        self.training_cycles += 1
+
+        # Reduce exploration over time
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-    
+            self.epsilon *= self.epsilon_decay  
+
+        # Print training cycle stats every 1000 iterations
+        if self.training_cycles % 100 == 0:
+            print(f"📊 Training Cycle: {self.training_cycles}, Current Epsilon: {self.epsilon:.5f}")
+        
     # ====================
     # 🔹 MAIN EXECUTION POINT
     # ====================
