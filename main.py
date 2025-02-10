@@ -271,6 +271,7 @@ class DQNTradingAgent:
     def execute_trade(self, action, price, ticker):
         """Perform real buy/sell orders via Alpaca API."""
         max_shares = self.max_position_size // price
+        action_source = '[Model Prediction]'
 
         # Apply Stop-Loss & Trailing Stop
         if self.holdings[ticker] > 0 and self.position_prices[ticker]:
@@ -278,13 +279,19 @@ class DQNTradingAgent:
             loss_limit = entry_price * (1 - self.stop_loss_pct)  
             profit_limit = entry_price * (1 + self.trailing_stop_pct)  
 
-            if price < loss_limit or price > profit_limit:
-                action = 1  # Force SELL
+            if price < loss_limit:
+                action = 1
+                action_source = '[Loss Limit]'
+            elif price > profit_limit:
+                action = 1  
+                action_source = '[Profit Limit]'
 
         # Execute Buy
         if action == 0 and self.cash > price and self.holdings[ticker] < max_shares:
             shares = min(self.cash // price, max_shares)
             self.cash -= shares * price
+            # TODO: ⚠️ There could be a potential problem here if we add shares to existing position
+            # In this case we will override the original position price which might cause invalid calculations of UPL/RPL
             self.holdings[ticker] += shares
             self.position_prices[ticker] = price
             if ALPACA_ENABLED:
@@ -292,8 +299,8 @@ class DQNTradingAgent:
                     symbol=ticker, qty=shares, side='buy',
                     type='market', time_in_force='gtc'
                 )
-            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares})
-            print(f"✅ Bought {shares} shares of {ticker} at ${price}")
+            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares, 'Source': action_source})
+            print(f"✅ Bought {shares} shares of {ticker} at ${price} ({action_source})")
 
         # Execute Sell
         elif action == 1 and self.holdings[ticker] > 0:
@@ -306,8 +313,8 @@ class DQNTradingAgent:
                 )
             self.holdings[ticker] = 0
             self.position_prices[ticker] = None
-            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price})
-            print(f"✅ Sold {ticker} at ${price}")
+            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price, 'Source': action_source})
+            print(f"✅ Sold {ticker} at ${price} ({action_source})")
 
 
     def load_or_build_model(self):

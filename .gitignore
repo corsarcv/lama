@@ -1,6 +1,7 @@
 config.yaml
-DQN_trading_model.keras
-replay_memory.pkl
+DQN_trading_model.keras*
+replay_memory.pkl*
+training_stats.pkl*
 .venv
 data/dumps/*
 __pycache__
