@@ -390,6 +390,7 @@ class DQNTradingAgent:
             latest['close'], latest['volume'], latest['EMA50'], latest['EMA200'],
             latest['MACD'], latest['MACD_signal'], latest['RSI'],
             self.cash, self.holdings[ticker],
+            latest['close'] - latest['EMA50'],
             latest['minutes_since_open']
         ])
 
@@ -405,17 +406,26 @@ class DQNTradingAgent:
             self.holdings[t] * (df.iloc[-1]['close'] - self.position_prices[t]) if self.position_prices[t] else 0
             for t in self.tickers
         )
+    
     def store_experience(self, state, action, reward, next_state):
         """Store experience with initial high priority."""
-        max_priority = max([x[0] for x in self.memory], default=1.0)  # Get max priority
-        self.memory.append((max_priority, (state, action, reward, next_state)))
+        if self.memory:
+            max_priority = max(float(x[0]) if isinstance(x[0], (int, float)) else float(x[0][0]) for x in self.memory)
+        else:
+            max_priority = 1.0  # Default priority if memory is empty
+
+        # Ensure priority is a scalar and not an array
+        self.memory.append((float(max_priority), (state, action, reward, next_state)))
+
 
     def get_prioritized_sample(self):
         """Retrieve a batch based on priority sampling."""
         if len(self.memory) < self.batch_size:
             return []
 
-        priorities = np.array([x[0] for x in self.memory])  # Extract priorities
+        # Ensure that priorities are extracted as scalars
+        priorities = np.array([float(x[0]) if isinstance(x[0], (int, float)) else float(x[0][0]) for x in self.memory], dtype=np.float32)
+
         probs = priorities ** self.alpha  # Apply prioritization
         probs /= probs.sum()  # Normalize probabilities
 
@@ -537,11 +547,11 @@ class DQNTradingAgent:
 
 
 # Run the Algorithm
-tickers = ['AAPL']
+
 # tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
-# tickers = [
-#     'ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 
-#     'AXON', 'BAC', 'BKNG', 'BSX', 'C', 'CINF', 'COST', 'CPAY', 'CPRT', 'DE'
-# ]
+tickers = [
+    'ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 
+    'AXON', 'BAC', 'BKNG', 'BSX', 'C', 'CINF', 'COST', 'CPAY', 'CPRT', 'DE'
+]
 rl_trader = DQNTradingAgent(tickers, strategy=Strategy.conservative())
 rl_trader.run_trading_loop(episodes=3, sleep_time=1)
