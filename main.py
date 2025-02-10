@@ -35,6 +35,7 @@ if ALPACA_ENABLED:
 # File paths for saving model and memory
 MODEL_PATH = "DQN_trading_model.keras"
 MEMORY_PATH = "replay_memory.pkl"
+CYCLES_COUNT_PATN = "training_stats.pkl"
 
 class Strategy:
 
@@ -117,7 +118,8 @@ class DQNTradingAgent:
         self.trade_log = []
         self.memory = deque(maxlen=2000)
         self.historical_batch_size = 100
-
+        self.training_cycles = 0  # Track the number of learning updates
+        
         self.strategy = strategy if strategy is not None else Strategy.balanced()
 
         self.realized_profit_loss = 0  # RPL
@@ -269,6 +271,7 @@ class DQNTradingAgent:
     def execute_trade(self, action, price, ticker):
         """Perform real buy/sell orders via Alpaca API."""
         max_shares = self.max_position_size // price
+        action_source = '[Model Prediction]'
 
         # Apply Stop-Loss & Trailing Stop
         if self.holdings[ticker] > 0 and self.position_prices[ticker]:
@@ -276,13 +279,19 @@ class DQNTradingAgent:
             loss_limit = entry_price * (1 - self.stop_loss_pct)  
             profit_limit = entry_price * (1 + self.trailing_stop_pct)  
 
-            if price < loss_limit or price > profit_limit:
-                action = 1  # Force SELL
+            if price < loss_limit:
+                action = 1
+                action_source = '[Loss Limit]'
+            elif price > profit_limit:
+                action = 1  
+                action_source = '[Profit Limit]'
 
         # Execute Buy
         if action == 0 and self.cash > price and self.holdings[ticker] < max_shares:
             shares = min(self.cash // price, max_shares)
             self.cash -= shares * price
+            # TODO: ⚠️ There could be a potential problem here if we add shares to existing position
+            # In this case we will override the original position price which might cause invalid calculations of UPL/RPL
             self.holdings[ticker] += shares
             self.position_prices[ticker] = price
             if ALPACA_ENABLED:
@@ -290,8 +299,8 @@ class DQNTradingAgent:
                     symbol=ticker, qty=shares, side='buy',
                     type='market', time_in_force='gtc'
                 )
-            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares})
-            print(f"✅ Bought {shares} shares of {ticker} at ${price}")
+            self.trade_log.append({'Action': 'BUY', 'Ticker': ticker, 'Price': price, 'Shares': shares, 'Source': action_source})
+            print(f"✅ Bought {shares} shares of {ticker} at ${price} ({action_source})")
 
         # Execute Sell
         elif action == 1 and self.holdings[ticker] > 0:
@@ -304,17 +313,25 @@ class DQNTradingAgent:
                 )
             self.holdings[ticker] = 0
             self.position_prices[ticker] = None
-            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price})
-            print(f"✅ Sold {ticker} at ${price}")
+            self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price, 'Source': action_source})
+            print(f"✅ Sold {ticker} at ${price} ({action_source})")
 
 
     def load_or_build_model(self):
-        """Load existing model or build a new one."""
+        """Load existing model and training cycle stats, or create a new one."""
         if os.path.exists(MODEL_PATH):
-            print("⏳ Loading saved model...")
+            print("📥 Loading saved model...")
+            self.training_cycles = 0  # Default
+            
+            if os.path.exists(CYCLES_COUNT_PATN):
+                with open(CYCLES_COUNT_PATN, "rb") as f:
+                    stats = pickle.load(f)
+                    self.training_cycles = stats.get("training_cycles", 0)
+            
             return load_model(MODEL_PATH)
         else:
-            print("⚠️ No saved model found, building a new one...")
+            print("⚙️ No saved model found, building a new one...")
+            self.training_cycles = 0  # Start fresh
             return self.build_dqn_model()
 
     def build_dqn_model(self):
@@ -330,9 +347,14 @@ class DQNTradingAgent:
         return model
 
     def save_model(self):
-        """⏳ Saves the trained model to disk."""
+        """Saves the trained model and training cycle count to disk."""
         self.model.save(MODEL_PATH)
-        print("💾 Model saved successfully.")
+        
+        # Save training stats
+        with open("training_stats.pkl", "wb") as f:
+            pickle.dump({CYCLES_COUNT_PATN: self.training_cycles}, f)
+        
+        print(f"💾 Model saved. Training cycles: {self.training_cycles}")
 
     def load_replay_memory(self):
         """Loads replay memory from disk."""
@@ -368,6 +390,7 @@ class DQNTradingAgent:
             latest['close'], latest['volume'], latest['EMA50'], latest['EMA200'],
             latest['MACD'], latest['MACD_signal'], latest['RSI'],
             self.cash, self.holdings[ticker],
+            latest['close'] - latest['EMA50'],
             latest['minutes_since_open']
         ])
 
@@ -383,17 +406,26 @@ class DQNTradingAgent:
             self.holdings[t] * (df.iloc[-1]['close'] - self.position_prices[t]) if self.position_prices[t] else 0
             for t in self.tickers
         )
+    
     def store_experience(self, state, action, reward, next_state):
         """Store experience with initial high priority."""
-        max_priority = max([x[0] for x in self.memory], default=1.0)  # Get max priority
-        self.memory.append((max_priority, (state, action, reward, next_state)))
+        if self.memory:
+            max_priority = max(float(x[0]) if isinstance(x[0], (int, float)) else float(x[0][0]) for x in self.memory)
+        else:
+            max_priority = 1.0  # Default priority if memory is empty
+
+        # Ensure priority is a scalar and not an array
+        self.memory.append((float(max_priority), (state, action, reward, next_state)))
+
 
     def get_prioritized_sample(self):
         """Retrieve a batch based on priority sampling."""
         if len(self.memory) < self.batch_size:
             return []
 
-        priorities = np.array([x[0] for x in self.memory])  # Extract priorities
+        # Ensure that priorities are extracted as scalars
+        priorities = np.array([float(x[0]) if isinstance(x[0], (int, float)) else float(x[0][0]) for x in self.memory], dtype=np.float32)
+
         probs = priorities ** self.alpha  # Apply prioritization
         probs /= probs.sum()  # Normalize probabilities
 
@@ -439,10 +471,17 @@ class DQNTradingAgent:
         # Update priorities in memory
         self.update_priorities(indices, td_errors)
 
-        # Decay exploration rate
+        # Increment training cycle count
+        self.training_cycles += 1
+
+        # Reduce exploration over time
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-    
+            self.epsilon *= self.epsilon_decay  
+
+        # Print training cycle stats every 1000 iterations
+        if self.training_cycles % 100 == 0:
+            print(f"📊 Training Cycle: {self.training_cycles}, Current Epsilon: {self.epsilon:.5f}")
+        
     # ====================
     # 🔹 MAIN EXECUTION POINT
     # ====================
@@ -508,11 +547,11 @@ class DQNTradingAgent:
 
 
 # Run the Algorithm
-tickers = ['AAPL']
+
 # tickers = ['CEG', 'WBD', 'EL', 'VST', 'DXCM', 'GL', 'TSLA', 'PLTR',  'SMCI']
-# tickers = [
-#     'ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 
-#     'AXON', 'BAC', 'BKNG', 'BSX', 'C', 'CINF', 'COST', 'CPAY', 'CPRT', 'DE'
-# ]
+tickers = [
+    'ADSK', 'AEE', 'AIZ', 'AJG', 'ALL', 'AME', 'AMP', 'APD', 'ATO', 
+    'AXON', 'BAC', 'BKNG', 'BSX', 'C', 'CINF', 'COST', 'CPAY', 'CPRT', 'DE'
+]
 rl_trader = DQNTradingAgent(tickers, strategy=Strategy.conservative())
 rl_trader.run_trading_loop(episodes=3, sleep_time=1)
