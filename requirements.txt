@@ -12,3 +12,6 @@ tweepy
 vaderSentiment 
 pandas 
 numpy
+matplotlib
+joblib
+scikit-learn
