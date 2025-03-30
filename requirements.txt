@@ -15,3 +15,4 @@ numpy
 matplotlib
 joblib
 scikit-learn
+pandas-ta

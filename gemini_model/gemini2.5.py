@@ -5,8 +5,8 @@ import joblib  # For saving/loading scalers more efficiently than pickle
 import pandas_ta as ta # For technical indicators
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dense, Input
+from tensorflow.keras.models import Sequential, load_model # type: ignore
+from tensorflow.keras.layers import LSTM, Dense, Input # type: ignore
 import warnings
 
 # Suppress TensorFlow logs and warnings (optional)
@@ -17,10 +17,14 @@ warnings.filterwarnings('ignore', category=UserWarning, module='pandas_ta')
 
 
 # --- Constants ---
-MODEL_FILENAME = 'stock_lstm_model_6f.keras'
-HISTORY_FILENAME = 'stock_trade_history_6f.csv'
-SCALERS_FILENAME = 'stock_scalers_6f.joblib'
-
+CURRENT_FOLDER  = os.path.dirname(os.path.abspath(__file__))
+DATA_FOLDER = os.path.abspath(os.path.join(CURRENT_FOLDER, './../data/model_learning/gemini'))
+MODEL_FILENAME = os.path.join( DATA_FOLDER, 'lstm_model_6f.keras')
+HISTORY_FILENAME = os.path.join(DATA_FOLDER, 'trade_history_6f.csv')
+SCALERS_FILENAME = os.path.join(DATA_FOLDER, 'sscalers_6f.joblib')
+print(CURRENT_FOLDER)
+print(DATA_FOLDER)
+print(MODEL_FILENAME)
 # Technical Indicator Parameters (adjust as needed)
 EMA_PERIOD = 12
 MACD_FAST = 12
@@ -39,7 +43,7 @@ FEATURE_COLS = [
     f'RSI_{RSI_PERIOD}'
 ]
 PRICE_INDEX = FEATURE_COLS.index('price') # Index of the price column within features
-N_FEATURES = len(FEATURE_COLS) # Now 6 features
+N_FEATURES = len(FEATURE_COLS) # 6 features as of now
 
 # Training and Prediction Parameters
 # Need slightly more history for indicators to become stable
@@ -75,6 +79,7 @@ class StockSuggester:
         self.history = pd.DataFrame(columns=['time', 'stock', 'price', 'volume', 'moving_average'])
         self.scalers = {} # Dictionary to store scalers for each stock {'STOCK_NAME': scaler}
         self._load()
+        self.sector = "<NOT DEFINED>"  # TODO: Learn models by sector
         self.is_sufficiently_trained = self.model is not None
         print(f"Model loaded: {self.is_sufficiently_trained}")
         print(f"History records loaded: {len(self.history)}")
@@ -487,10 +492,12 @@ if __name__ == "__main__":
     noise = {'STOCK_A': 0.015, 'STOCK_B': 0.020, 'STOCK_C': 0.010}
 
     all_stock_data = {}
+    column_names = ['time', 'stock', 'price', 'volume', 'moving_average'] # Define column names
 
     for stock, price in stocks.items():
         stock_prices = []
         stock_times = []
+        current_stock_learning_events = []
         for i in range(300): # Generate more data points
             time = base_time + pd.Timedelta(hours=i)
             price = price * (1 + np.random.normal(trends[stock], noise[stock]))
@@ -499,11 +506,15 @@ if __name__ == "__main__":
             stock_times.append(time)
             # Simple Moving Average calculation for dummy data (e.g., 10 periods)
             current_ma = np.mean(stock_prices[-10:]) if len(stock_prices) >= 10 else price
-            learning_events.append((time, stock, price, max(0, volume), current_ma)) # Ensure volume >= 0
+            event_tuple = (time, stock, price, max(0, volume), current_ma)
+            learning_events.append(event_tuple) # Ensure volume >= 0
+            current_stock_learning_events.append(event_tuple) # Append to list for this stock only
 
         # Store for prediction example continuity
-        temp_df = pd.DataFrame(learning_events)
-        all_stock_data[stock] = temp_df[temp_df['stock']==stock].copy()
+        temp_df_stock_only = pd.DataFrame(current_stock_learning_events, columns=column_names)
+        # Store this stock-specific DataFrame
+        # No need to filter temp_df_stock_only further as it only contains data for 'stock'
+        all_stock_data[stock] = temp_df_stock_only.copy()
 
 
     # Add data for a stock that will likely have insufficient history for prediction later
