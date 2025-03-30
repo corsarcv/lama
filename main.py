@@ -10,7 +10,7 @@ MODE = L
 
 SOURCE = './data/symbols/sp500.csv'
 
-API = AlpacaAPI(historical_batch_size=1000)
+ALPACA_API = AlpacaAPI(historical_batch_size=10000)
 
 if MODE == L:
     # For Learning
@@ -21,11 +21,26 @@ if MODE == L:
         symbol = row['Symbol']
         sector = row['Sector']
         print(f'🔹 Processing {symbol} {sector}')
-        suggester = StockSuggester(sector=sector)
+        suggester = StockSuggester(sector=sector, n_predict_steps=5)
         last_timestamp = suggester.get_last_history_timestamp_for_stock(symbol)
+        if last_timestamp:
+            print(f'Model already has data for {symbol} as of {last_timestamp}. Skipping...')
+            continue
         year_back_date = datetime.now() - timedelta(days=365)
         start_date = last_timestamp if last_timestamp is not None else year_back_date
-        API.fetch_historical_data(ticker=symbol)
+        ALPACA_API.fetch_historical_data(ticker=symbol, period='15Min', start=start_date.strftime('%Y-%m-%d'))
+        df = ALPACA_API.historical_data[symbol]
+        list_of_dicts = df.to_dict(orient='records')
+        if len(list_of_dicts) == 0:
+            print(f'No data for symbol {symbol}. Skipping...')
+            continue
+        else:
+            print(f'Found {len(list_of_dicts)} events for {symbol}')
+        events = [
+            dict(time=r['timestamp'], stock=symbol, price=r['close'],
+                 volume=r['volume'], moving_average=r['moving_average']) for r in list_of_dicts]
+        # ['time', 'stock', 'price', 'volume', 'moving_average']
+        suggester.learn(events)
         print(f'🔹 Done processing {symbol} {sector}\n')
     # Define list of stocks/sectors
     # Need to learch each sector separatelly (though multiple stocks are allowed for seme predictor)
@@ -36,6 +51,8 @@ if MODE == L:
     # Format data before sending
     # Feed each batch to predictor
     # stop getting stock data when reaching current time (or when result count less than batch size)
+    # We can train model for different numbers of predict steps (1, 5, 20). 
+    # We can get price date from history if it is already there for a different number of steps model
 
 else:
     # For prediction
