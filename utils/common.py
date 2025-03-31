@@ -44,3 +44,18 @@ def calculate_median(values):
         mid1 = sorted_values[n // 2 - 1]
         mid2 = sorted_values[n // 2]
         return (mid1 + mid2) / 2
+
+def build_stocks_map():
+    SP500_SOURCE = './data/symbols/sp500.csv'
+    with open(SP500_SOURCE, mode='r') as file:
+        reader = csv.DictReader(file)
+        stock_data = [row for row in reader]
+    grouped_stocks_data = {}
+    for row in stock_data:
+        symbol = row['Symbol']
+        sector = row['Sector'] 
+        if sector not in grouped_stocks_data:
+            grouped_stocks_data[sector] = [symbol]
+        else:
+            grouped_stocks_data[sector].append(symbol) 
+    return grouped_stocks_data

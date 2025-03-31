@@ -36,7 +36,7 @@ if MODE == L:
 
     year_back_date = datetime.now() - timedelta(days=365)
 
-    for sector, symbols in grouped_data.items():
+    for sector, symbols in grouped_stocks_data.items():
         print(f'🔹 Processing {symbols} {sector}')
         if single_stock:
             sector = single_stock
