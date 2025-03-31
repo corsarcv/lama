@@ -10,10 +10,10 @@ import random
 # ========================
 
 # Alpaca API Keys (Replace with your actual keys)
-ALPACA_API_KEY = Config()[APCA_API_KEY_ID]  # Add your Alpaca API Key
-ALPACA_SECRET_KEY = Config()[APCA_API_SECRET_KEY]  # Add your Alpaca Secret Key
+ALPACA_API_KEY = Config[APCA_API_KEY_ID]  # Add your Alpaca API Key
+ALPACA_SECRET_KEY = Config[APCA_API_SECRET_KEY]  # Add your Alpaca Secret Key
 
-BASE_URL = Config()[BASE_URL]  # Use live trading by changing to live endpoint
+BASE_URL = Config.BASE_URL  # Use live trading by changing to live endpoint
 
 ALPACA_ENABLED = bool(ALPACA_API_KEY and ALPACA_SECRET_KEY)
 

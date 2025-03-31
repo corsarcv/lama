@@ -1,5 +1,8 @@
 from datetime import datetime, date, timedelta
+from playsound import playsound
 import random
+import csv
+import os
 
 def generate_timestamp():
     return str(datetime.now()).replace(' ', '').replace(':', '_')
@@ -59,3 +62,14 @@ def build_stocks_map():
         else:
             grouped_stocks_data[sector].append(symbol) 
     return grouped_stocks_data
+
+
+def play_success():
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+    data_folder = os.path.join(current_folder, '../data')
+    playsound(os.path.join(data_folder, 'success.mp3')) 
+
+def play_failure():
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+    data_folder = os.path.join(current_folder, '../data')
+    playsound(os.path.join(data_folder, 'failure.mp3')) 

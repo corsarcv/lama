@@ -17,3 +17,5 @@ joblib
 scikit-learn
 pandas-ta
 yfinance
+playsound
+PyObjC

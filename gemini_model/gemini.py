@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import numpy as np
 import os
@@ -9,9 +10,14 @@ from tensorflow.keras.models import Sequential, load_model # type: ignore
 from tensorflow.keras.layers import LSTM, Dense, Input # type: ignore
 import warnings
 
+from config import Config
+
 # ========================
 # 🔹 CONFIGURATION SECTION
 # ========================
+# --- Logging Setup ---
+logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
+
 # Suppress TensorFlow logs and warnings (optional)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tf.get_logger().setLevel('ERROR')
@@ -91,7 +97,7 @@ class StockSuggester:
         """
         Initializes the StockSuggester, loading existing model, history, and scalers.
         """
-        print("Initializing Stock Suggester (6 Features)...")
+        logging.debug("Initializing Stock Suggester (6 Features)...")
         self.sector = sector
         self.n_predict_steps = n_predict_steps
         self.model_path = model_path.format(sector=sector, n_predict_steps=n_predict_steps)
@@ -103,10 +109,10 @@ class StockSuggester:
         self.scalers = {} # Dictionary to store scalers for each stock {'STOCK_NAME': scaler}
         self._load()
         self.is_sufficiently_trained = self.model is not None
-        print(f"✅ Model loaded: {self.is_sufficiently_trained}")
-        print(f"✅ History records loaded: {len(self.history)}")
-        print(f"✅ Using Features: {FEATURE_COLS}")
-        print(f"✅ Price Index for Scaling: {PRICE_INDEX}")
+        logging.debug(f"✅ Model loaded: {self.is_sufficiently_trained}")
+        logging.debug(f"✅ History records loaded: {len(self.history)}")
+        logging.debug(f"✅ Using Features: {FEATURE_COLS}")
+        logging.debug(f"✅ Price Index for Scaling: {PRICE_INDEX}")
 
     def _load(self):
         """Loads the model, history, and scalers from local files."""
@@ -115,12 +121,12 @@ class StockSuggester:
             try:
                 # Provide custom_objects if you use custom layers/activations later
                 self.model = load_model(self.model_path) #, custom_objects={...})
-                print(f"📥 Model loaded successfully from {self.model_path}")
+                logging.debug(f"📥 Model loaded successfully from {self.model_path}")
             except Exception as e:
-                print(f"⚠️ Warning: Could not load model from {self.model_path}. Error: {e}")
+                logging.warn(f"⚠️ Warning: Could not load model from {self.model_path}. Error: {e}")
                 self.model = None
         else:
-            print(f"⚠️ Model file {self.model_path} not found.")
+            logging.error(f"⚠️ Model file {self.model_path} not found.")
             self.model = None
 
         # Load history CSV
@@ -134,50 +140,50 @@ class StockSuggester:
                 self.history = self.history.sort_values(by='time').reset_index(drop=True)
                 # Drop rows where essential numeric data might be missing after load
                 self.history.dropna(subset=['price', 'volume', 'moving_average'], inplace=True)
-                print(f"📥 History loaded successfully from {self.history_path}")
+                logging.debug(f"📥 History loaded successfully from {self.history_path}")
             except Exception as e:
-                print(f"⚠️ Warning: Could not load history from {self.history_path}. Error: {e}")
+                logging.warn(f"⚠️ Warning: Could not load history from {self.history_path}. Error: {e}")
                 self.history = pd.DataFrame(columns=['time', 'stock', 'price', 'volume', 'moving_average'])
         else:
-            print(f"⚠️ History file {self.history_path} not found.")
+            logging.error(f"⚠️ History file {self.history_path} not found.")
 
         # Load scalers
         if os.path.exists(self.scalers_path):
             try:
                 self.scalers = joblib.load(self.scalers_path)
-                print(f"📥 Scalers loaded successfully from {self.scalers_path}")
+                logging.debug(f"📥 Scalers loaded successfully from {self.scalers_path}")
             except Exception as e:
-                print(f"⚠️ Warning: Could not load scalers from {self.scalers_path}. Error: {e}")
+                logging.warn(f"⚠️ Warning: Could not load scalers from {self.scalers_path}. Error: {e}")
                 self.scalers = {}
         else:
-            print(f"⚠️ Scalers file {self.scalers_path} not found.")
+            logging.error(f"⚠️ Scalers file {self.scalers_path} not found.")
 
     def _save_history(self):
         """Saves the current history DataFrame to a CSV file."""
         try:
             self.history.to_csv(self.history_path, index=False)
-            print(f"💾 History saved to {self.history_path}")
+            logging.debug(f"💾 History saved to {self.history_path}")
         except Exception as e:
-            print(f"⚠️ Error saving history to {self.history_path}: {e}")
+            logging.error(f"⚠️ Error saving history to {self.history_path}: {e}")
 
     def _save_model(self):
         """Saves the current Keras model to a file."""
         if self.model:
             try:
                 self.model.save(self.model_path)
-                print(f"💾 Model saved to {self.model_path}")
+                logging.debug(f"💾 Model saved to {self.model_path}")
             except Exception as e:
-                print(f"⚠️ Error saving model to {self.model_path}: {e}")
+                logging.error(f"⚠️ Error saving model to {self.model_path}: {e}")
         else:
-            print("⚠️ No model to save.")
+            logging.error("⚠️ No model to save.")
 
     def _save_scalers(self):
         """Saves the scalers dictionary to a file."""
         try:
             joblib.dump(self.scalers, self.scalers_path)
-            print(f"💾 Scalers saved to {self.scalers_path}")
+            logging.debug(f"💾 Scalers saved to {self.scalers_path}")
         except Exception as e:
-            print(f"⚠️ Error saving scalers to {self.scalers_path}: {e}")
+            logging.error(f"⚠️ Error saving scalers to {self.scalers_path}: {e}")
 
     def _calculate_indicators(self, stock_data):
         """
@@ -186,7 +192,7 @@ class StockSuggester:
         Returns DataFrame with indicators added, NaNs dropped.
         """
         if stock_data.empty or len(stock_data) < MIN_RECORDS_FOR_INDICATORS:
-             # print(f"   -> Not enough data ({len(stock_data)}) to calculate indicators (min {MIN_RECORDS_FOR_INDICATORS}).")
+             # logging.debug(f"   -> Not enough data ({len(stock_data)}) to calculate indicators (min {MIN_RECORDS_FOR_INDICATORS}).")
              return pd.DataFrame() # Return empty if not enough data
         df = stock_data.copy()
         df.ta.ema(length=EMA_PERIOD, close='price', append=True)
@@ -201,20 +207,20 @@ class StockSuggester:
         # Ensure the calculated columns exist before selecting
         required_calculated_cols = [f'EMA_{EMA_PERIOD}', f'MACD_{MACD_FAST}_{MACD_SLOW}_{MACD_SIGNAL}', f'RSI_{RSI_PERIOD}']
         if not all(col in df.columns for col in required_calculated_cols):
-            print(f"⚠️ Warning: Not all calculated indicator columns found in DataFrame for stock.")
+            logging.warning(f"⚠️ Warning: Not all calculated indicator columns found in DataFrame for stock.")
             # Find which are missing:
             missing = [col for col in required_calculated_cols if col not in df.columns]
-            print(f"⚠️ Missing columns: {missing}")
+            logging.warning(f"⚠️ Missing columns: {missing}")
             # Attempt to select available columns from FEATURE_COLS anyway
             available_feature_cols = [col for col in FEATURE_COLS if col in df.columns]
             if not available_feature_cols: return pd.DataFrame() # Cannot proceed
-            #print(f"Using available feature columns: {available_feature_cols}") # Debug
+            #logging.debug(f"Using available feature columns: {available_feature_cols}") # Debug
             # This case shouldn't happen often with pandas_ta but handles edge cases
             return df[available_feature_cols]
 
         # Ensure all expected base columns are present too
         if not all(col in df.columns for col in ['price', 'volume', 'moving_average']):
-             print("⚠️ Warning: Base columns missing after indicator calculation.")
+             logging.warning("⚠️ Warning: Base columns missing after indicator calculation.")
              return pd.DataFrame()
 
         # Select the final features in the desired order
@@ -231,7 +237,7 @@ class StockSuggester:
         stock_data_with_indicators = self._calculate_indicators(stock_data)
 
         if stock_data_with_indicators.empty or len(stock_data_with_indicators) < LOOKBACK_PERIOD + self.n_predict_steps:
-            # print(f"   -> Not enough data after indicator calculation ({len(stock_data_with_indicators)}) to create sequences (min {LOOKBACK_PERIOD + 1}).")
+            # logging.debug(f"   -> Not enough data after indicator calculation ({len(stock_data_with_indicators)}) to create sequences (min {LOOKBACK_PERIOD + 1}).")
             return None, None, None # Not enough data
 
         # 2. Select Feature columns and Scale Data
@@ -266,14 +272,14 @@ class StockSuggester:
                            (time, stock_ticker, price, volume, moving_average).
                            'time' should be convertible to datetime.
         """
-        print(f"\n⏳ Starting Learning Process ({len(events)} new events) ---")
+        logging.info(f"\n⏳ Starting Learning Process ({len(events)} new events)")
         if not events:
-            print("⚠️ No new events provided for learning.")
+            logging.warning ("⚠️ No new events provided for learning.")
             return
 
         # 1. Input Validation and Data Preparation
         try:
-            # Expecting 5 columns now
+            # Expecting 5 columns now, should extend to 'time since opening'
             new_data = pd.DataFrame(events, columns=['time', 'stock', 'price', 'volume', 'moving_average'])
             new_data['time'] = pd.to_datetime(new_data['time'])
             # Convert numeric types, coerce errors to NaN
@@ -282,12 +288,12 @@ class StockSuggester:
             # Drop rows where essential inputs are missing
             new_data.dropna(subset=['time', 'stock', 'price', 'volume', 'moving_average'], inplace=True)
             if new_data.empty:
-                print("⚠️ Warning: All input events were invalid or incomplete after validation.")
+                logging.warning("⚠️ Warning: All input events were invalid or incomplete after validation.")
                 return
 
         except Exception as e:
-            print(f"⚠️ Error processing input events: {e}")
-            print("⚠️ Expected format: list of (time, stock, price, volume, moving_average)")
+            logging.error(f"⚠️ Error processing input events: {e}")
+            logging.error("⚠️ Expected format: list of (time, stock, price, volume, moving_average)")
             return
 
         # 2. Append to History and Save
@@ -295,7 +301,7 @@ class StockSuggester:
         # Drop based on more columns now to avoid duplicates if needed
         self.history = self.history.drop_duplicates(subset=['time', 'stock']).sort_values(by='time').reset_index(drop=True)
         self._save_history()
-        print(f"✅ History updated. Total records: {len(self.history)}")
+        logging.debug(f"✅ History updated. Total records: {len(self.history)}")
 
         # 3. Prepare Data for Training (per stock)
         all_X, all_y = [], []
@@ -303,7 +309,7 @@ class StockSuggester:
         sufficient_data_for_training = False
 
         unique_stocks = self.history['stock'].unique()
-        print(f"📊 Found {len(unique_stocks)} unique stocks in history.")
+        logging.debug(f"📊 Found {len(unique_stocks)} unique stocks in history.")
 
         for stock in unique_stocks:
             # Get data for the specific stock, ensure it's sorted
@@ -311,7 +317,7 @@ class StockSuggester:
             stock_data = stock_data.sort_values(by='time').reset_index(drop=True)
 
             if len(stock_data) >= MIN_TRAIN_RECORDS_PER_STOCK:
-                print(f"⏳ Processing data for stock: {stock} ({len(stock_data)} records)")
+                logging.debug(f"⏳ Processing data for stock: {stock} ({len(stock_data)} records)")
                 X_stock, y_stock, scaler = self._prepare_data_for_stock(stock_data)
 
                 if X_stock is not None and y_stock is not None and scaler is not None:
@@ -320,18 +326,18 @@ class StockSuggester:
                         all_y.append(y_stock)
                         updated_scalers[stock] = scaler # Store the latest scaler for this stock
                         sufficient_data_for_training = True
-                        print(f"  ✅ Prepared {len(X_stock)} sequences for {stock}.")
+                        logging.debug(f"  ✅ Prepared {len(X_stock)} sequences for {stock}.")
                     else:
-                        print(f"  ⚠️ No sequences generated for {stock} despite sufficient initial records (check indicator/NaN logic).")
+                        logging.warning(f"  ⚠️ No sequences generated for {stock} despite sufficient initial records (check indicator/NaN logic).")
 
                 else:
-                     # Message printed inside _prepare_data_for_stock if data too short after indicators
-                     print(f"  ⚠️ Could not prepare sequences for {stock} (likely insufficient data after indicator calculation).")
+                     # Message logging.debuged inside _prepare_data_for_stock if data too short after indicators
+                     logging.warning(f"  ⚠️ Could not prepare sequences for {stock} (likely insufficient data after indicator calculation).")
             else:
-                print(f"⚠️ Skipping stock {stock}: Insufficient records ({len(stock_data)} < {MIN_TRAIN_RECORDS_PER_STOCK})")
+                logging.warning(f"⚠️ Skipping stock {stock}: Insufficient records ({len(stock_data)} < {MIN_TRAIN_RECORDS_PER_STOCK})")
 
         if not sufficient_data_for_training:
-            print("⚠️ Insufficient data across all stocks to perform training.")
+            logging.warning("⚠️ Insufficient data across all stocks to perform training.")
             self.scalers.update(updated_scalers) # Still save any new scalers if created
             self._save_scalers()
             return
@@ -344,13 +350,13 @@ class StockSuggester:
         # No reshape needed if _prepare_data_for_stock returns correctly shaped np.arrays
         # X_train should already be (num_sequences, LOOKBACK_PERIOD, N_FEATURES)
         # y_train should already be (num_sequences,)
-        print(f"⚖️ Total training sequences: {X_train.shape[0]}")
-        print(f"⚖️ Training data shape (X): {X_train.shape}") # Should be (num_seq, 60, 6)
-        print(f"⚖️ Training data shape (y): {y_train.shape}") # Should be (num_seq,)
+        logging.debug(f"⚖️ Total training sequences: {X_train.shape[0]}")
+        logging.debug(f"⚖️ Training data shape (X): {X_train.shape}") # Should be (num_seq, 60, 6)
+        logging.debug(f"⚖️ Training data shape (y): {y_train.shape}") # Should be (num_seq,)
 
         # 4. Define or Update Model
         if self.model is None:
-            print("⏳ Building new LSTM model (Multi-Step Output).")
+            logging.debug("⏳ Building new LSTM model (Multi-Step Output).")
             self.model = Sequential([
                 Input(shape=(LOOKBACK_PERIOD, N_FEATURES)), # Input shape uses N_FEATURES
                 LSTM(64, return_sequences=True, activation='relu'), # Increased units slightly
@@ -361,16 +367,16 @@ class StockSuggester:
             ])
             self.model.compile(optimizer='adam', loss='mean_squared_error')
             self.model.summary() # Print model summary
-            print("✅ Model compiled.")
+            logging.debug("✅ Model compiled.")
         else:
-            print("✅ Using existing model for further training.")
+            logging.debug("✅ Using existing model for further training.")
 
         # 5. Train the Model
-        print("⏳ Starting model training...")
+        logging.debug("⏳ Starting model training...")
         # Consider using validation_split if you have more data, e.g., validation_split=0.1
         history_callback = self.model.fit(X_train, y_train, epochs=10, batch_size=256, verbose=1) # Increased epochs/batch slightly
 
-        print("✅ Model training finished.")
+        logging.debug("✅ Model training finished.")
         self.is_sufficiently_trained = True # Mark as trained
 
         # 6. Save Updated Model and Scalers
@@ -378,7 +384,7 @@ class StockSuggester:
         self.scalers.update(updated_scalers) # Update with the latest scalers
         self._save_scalers()
 
-        print("🚀 Learning Process Finished")
+        logging.info("🚀 Learning Process Finished")
 
     # ========================
     # 🔹 LEARN Public Method
@@ -394,11 +400,11 @@ class StockSuggester:
         Returns:
             dict: A dictionary with stock tickers as keys and suggestion strings as values.
         """
-        print(f"\n⏳ Starting Prediction Process ({len(events)} recent events)")
+        logging.debug(f"\n⏳ Starting Prediction Process ({len(events)} recent events)")
         suggestions = {}
 
         if not self.is_sufficiently_trained or self.model is None:
-            print("Prediction cannot proceed: Insufficient learning.")
+            logging.warning("Prediction cannot proceed: Insufficient learning.")
             try:
                 unique_stocks_in_event = {ev[1] for ev in events}
                 return {stock: "insufficient learning" for stock in unique_stocks_in_event}
@@ -406,7 +412,7 @@ class StockSuggester:
                  return {"error": "insufficient learning and could not parse input events"}
 
         if not events:
-            print("⚠️ No recent events provided for prediction.")
+            logging.warning("⚠️ No recent events provided for prediction.")
             return {}
 
         # 1. Prepare Input Data
@@ -418,7 +424,7 @@ class StockSuggester:
             recent_data.dropna(subset=['time', 'stock', 'price', 'volume', 'moving_average'], inplace=True)
             recent_data = recent_data.sort_values(by='time')
             if recent_data.empty:
-                print("⚠️ Warning: All recent events were invalid or incomplete.")
+                logging.warning("⚠️ Warning: All recent events were invalid or incomplete.")
                 # Try to extract stock names even if data invalid for returning status
                 try:
                     unique_stocks_in_event = {ev[1] for ev in events}
@@ -426,7 +432,7 @@ class StockSuggester:
                 except: return {"error": "invalid input event data"}
 
         except Exception as e:
-            print(f"⚠️ Error processing input events for prediction: {e}")
+            logging.error(f"⚠️ Error processing input events for prediction: {e}")
             return {"error": "invalid event format"}
 
         # Combine recent events with history for context, avoid duplicates
@@ -436,14 +442,14 @@ class StockSuggester:
         combined_history = combined_history.drop_duplicates(subset=['time', 'stock']).sort_values(by='time').reset_index(drop=True)
 
         unique_stocks_to_predict = recent_data['stock'].unique()
-        print(f"⏳ Predicting for stocks: {list(unique_stocks_to_predict)}")
+        logging.debug(f"⏳ Predicting for stocks: {list(unique_stocks_to_predict)}")
 
         # 2. Generate Prediction for each stock
         for stock in unique_stocks_to_predict:
-            print(f" ⏳ Processing prediction for: {stock}")
+            logging.debug(f" ⏳ Processing prediction for: {stock}")
 
             if stock not in self.scalers:
-                print(f" ⚠️ No scaler found for {stock}. Model cannot predict (stock likely unseen or insufficient data during learn).")
+                logging.warning(f" ⚠️ No scaler found for {stock}. Model cannot predict (stock likely unseen or insufficient data during learn).")
                 suggestions[stock] = "Insufficient scaler history" # Or maybe "unknown stock"
                 continue
 
@@ -455,7 +461,7 @@ class StockSuggester:
             stock_data_with_indicators = self._calculate_indicators(stock_data)
 
             if stock_data_with_indicators.empty or len(stock_data_with_indicators) < LOOKBACK_PERIOD:
-                print(f" ⚠️ Insufficient history for {stock} after indicator calculation ({len(stock_data_with_indicators)} < {LOOKBACK_PERIOD})")
+                logging.warning(f" ⚠️ Insufficient history for {stock} after indicator calculation ({len(stock_data_with_indicators)} < {LOOKBACK_PERIOD})")
                 suggestions[stock] = "Insufficient history"
                 continue
 
@@ -486,8 +492,8 @@ class StockSuggester:
                 inv_pred = scaler.inverse_transform(dummy_row_scaled)[0, PRICE_INDEX]
                 epsilon = 1e-4
                 predicted_prices.append(max(inv_pred, epsilon)) # Store the inverse-transformed price
-            # print(f" 📊 Last Price: {last_actual_price:.4f}")
-            # print(f" 📊 Predicted Prices for next {self.n_predict_steps} steps: {[f'{p:.4f}' for p in predicted_prices]}")
+            # logging.debug(f" 📊 Last Price: {last_actual_price:.4f}")
+            # logging.debug(f" 📊 Predicted Prices for next {self.n_predict_steps} steps: {[f'{p:.4f}' for p in predicted_prices]}")
 
             # How to generate a suggestion from N future prices (if N > 1)?
             # Option 1: Base it on the final predicted price (step N_PREDICT_STEPS)
@@ -502,9 +508,6 @@ class StockSuggester:
             else:
                 percentage_change = (final_predicted_price - last_actual_price) / last_actual_price
 
-            print(f" 📊 Last Price: {last_actual_price:.4f}, " + 
-                  f"Predicted Price: {final_predicted_price:.4f}, " + 
-                  f"Change: {percentage_change:.2%}")
             # Scale threshold as they are defined for N_STEPS=20
             scaled_percentage_threshold = percentage_change * 20 / N_PREDICT_STEPS
             # Map percentage change to suggestion
@@ -526,10 +529,16 @@ class StockSuggester:
                 'predicted_price': round(final_predicted_price, 4),
                 'prices_vector': [round(p, 4) for p in predicted_prices]
                 }
-            print(f" 💰 Suggestion: {suggestions[stock]}")
+            icon = '⏳' if action == 'hold' else '💰' if action in ('buy', 'strong_buy') else '🔻'
+            logging.info(f" {icon} {stock}: Last Price: {last_actual_price:.4f}, " + 
+                  f"Predicted Price: {final_predicted_price:.4f}, " + 
+                  f"Change: {percentage_change:.2%}, " + 
+                  f"Suggestion: {action}")
+            if action != 'hold':
+                logging.info(f"  🔹 Suggested pricing vector: {[f'{p:.4f}' for p in predicted_prices]}")
 
-        print("✅ Prediction Process Finished")
-        print('*' * 60)
+        logging.debug("✅ Prediction Process Finished")
+        logging.debug('*' * 60)
         return suggestions
 
     # ========================
@@ -620,7 +629,7 @@ if __name__ == "__main__":
                 prediction_events.append((time, stock, last_price, max(0, last_vol), current_ma))
 
         except IndexError:
-             print(f"\nWarning: Could not retrieve last price for {stock}. Skipping prediction simulation for it.")
+             logging.debug(f"\nWarning: Could not retrieve last price for {stock}. Skipping prediction simulation for it.")
              # Add dummy events if needed for testing structure
              # prediction_events.append((current_time, stock, stocks[stock]*1.01, vols[stock], stocks[stock]*1.01))
 
@@ -639,10 +648,10 @@ if __name__ == "__main__":
     # Call the predict method
     predictions = suggester.predict(prediction_events)
 
-    print("\n💰 Final Suggestions:")
-    # Use pprint for better dictionary formatting if many stocks
-    import pprint
-    pprint.pprint(predictions)
+    logging.debug("\n💰 Final Suggestions:")
+    # Use logging.debug for better dictionary formatting if many stocks
+    import logging
+    logging.debug.logging.debug(predictions)
 
     # Expected outcome hints:
     # STOCK_A: Likely Buy/Strong Buy (upward trend simulated)

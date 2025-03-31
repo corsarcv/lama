@@ -1,7 +1,15 @@
 import yaml
 
+class Meta(type):
+    def __getattr__(cls, name):
+        singleton = cls()
+        return getattr(singleton, name)
 
-class Config:
+    def __getitem__(cls, key):
+            singleton = cls()
+            return singleton[key]
+
+class Config(metaclass=Meta):
 
     _instance = None  # Singleton
     _initialized = False

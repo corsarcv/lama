@@ -1,15 +1,28 @@
 from datetime import datetime, timedelta
 from alpaca_api.api import AlpacaAPI
+from config import Config
 from gemini_model.gemini import StockSuggester
-from utils.common import build_stocks_map
+from utils.common import build_stocks_map, play_failure, play_success
+import logging
+import statistics
 
+logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
+
+"""
+This is prediction similation based on the latest 60 historical prices for stocks below.
+"""
+
+stock_symbols = ["AAPL", "MSFT", "GOOGL", "TSLA"] # Example stocks
+stock_symbols = stock_symbols + ['ERIE', 'STLD', 'MKTX', 'BX', 'NUE', 'MOS', 'BLK', 'COF', 'KKR']
+stock_symbols = stock_symbols + ['WRB', 'PRU', 'KEY', 'CTVA', 'MTB', 'IP','CF', 'VMC', 'EMN', 'SHW', 'FCX',
+                                 'HBAN', 'RF', 'NDAQ', 'AMCR', 'IFF', 'FITB', 'PKG', 'GS', 'MLM',
+                                 'USB', 'ACGL', 'BALL', 'C', 'CME', 'CFG', 'BEN', 'LYB', 'IVZ', 'AVY' ]
 
 grouped_stocks_data = build_stocks_map()
-stock_symbols = ["AAPL", "MSFT", "GOOGL", "TSLA"] # Example stocks
-
 
 alpaca_api = AlpacaAPI(historical_batch_size=65)
 three_days_ago_date = (datetime.now() - timedelta(days=3)).date()
+market_prediction_pct = []
 for symbol in stock_symbols:
     alpaca_api.fetch_historical_data(ticker=symbol, period='15Min', start=three_days_ago_date)
     events = []
@@ -22,28 +35,15 @@ for symbol in stock_symbols:
             break
     else:
         sector = 'Unknown'
-    prediction = StockSuggester(sector=sector).predict(events)
-    print('Prediction:', prediction)
-    # stock = 'COST'
-    # sector = 'Consumer Staples'
-    # price_file = f'./data/model_learning/gemini/trade_history_6f_{sector}_5.csv'
-    # with open(price_file, mode='r') as file:
-    #     reader = csv.DictReader(file)
-    #     data = [row for row in reader if row['stock']==stock]
-    # while len(data) >=65:
-    #     events = data[:60]
-    #     suggester = StockSuggester(sector=sector, n_predict_steps=5)
-    #     predicted = suggester.predict(events)[stock]
-    #     actual = data[64]['price']
-    #     print(actual, predicted)
-    #     data = data[60:]
-    # Get stocks grouped by sector
-    # Iterate by sectors. Each sector needs a separate predictor object
-    # For each stock in a specific sector group prepare data:
-    # Need to make sure that we have at least LOOKBACK_PERIOD (60 by default) historical events
-    # We should keep going back in history until we reach latest date for this stck the model was learned at
-    # Get current price and add it to historical events. 
-    # We need to make sure that differene between last historical and latest price event not less than 1h
-    # React if there is 'buy_strong'/'sell strong' prediction (log and sound)
-    # Me wight need to add recent events for the model to learn. It can be done at the beginning, 
-    # but at some point it can become too slow, so we better do it at the end
+        
+    prediction = StockSuggester(sector=sector).predict(events)[symbol]
+    
+    action = prediction['action']
+    if action in ('buy' , 'strong_buy'):
+        play_success()
+    elif  action in ('sell' , 'strong_sell'):
+        # TODO: Check if there are holdings for the symbol
+        play_failure()
+    market_prediction_pct.append(prediction['percentage_change'])
+logging.info(f'⚖️ Averge market prediction: {statistics.mean(market_prediction_pct):.4f}%')
+
