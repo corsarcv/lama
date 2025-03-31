@@ -35,15 +35,16 @@ for symbol in stock_symbols:
             break
     else:
         sector = 'Unknown'
-        
+
     prediction = StockSuggester(sector=sector).predict(events)[symbol]
     
     action = prediction['action']
     if action in ('buy' , 'strong_buy'):
         play_success()
     elif  action in ('sell' , 'strong_sell'):
-        # TODO: Check if there are holdings for the symbol
         play_failure()
+    if action != 'hold':
+        logging.info(f' 🔹 Current Position: {alpaca_api.get_position(symbol)}')
     market_prediction_pct.append(prediction['percentage_change'])
 logging.info(f'⚖️ Averge market prediction: {statistics.mean(market_prediction_pct):.4f}%')
 

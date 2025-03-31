@@ -91,6 +91,22 @@ class AlpacaAPI:
             df['minutes_since_open'] = (df['hour'] - 9) * 60 + df['minute']  # Market opens at 9:30 AM EST
 
     # ==========================
+    # 🔹 GET HOLDING FOR SYMBOL
+    # ==========================
+    def get_position(self, symbol):
+        try:
+            positions = api.list_positions()
+
+            for position in positions:
+                if position.symbol.upper() == symbol.upper():
+                    return float(position.qty)
+            return None
+
+        except Exception as e:
+            print(f"⚠️ Unexpected error: {e}")
+            return False
+
+    # ==========================
     # 🔹 HISTORICAL DATA FETCHING & HANDLING
     # ==========================
     def fetch_historical_data(self, ticker, period='1Min', start=None, end=None):
