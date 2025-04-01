@@ -5,6 +5,7 @@ import csv
 import os
 
 DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
+THREE_DAYS_AGO_DATE = (datetime.now() - timedelta(days=3)).date()
 
 def generate_timestamp():
     return str(datetime.now()).replace(' ', '').replace(':', '_')
@@ -71,3 +72,18 @@ def play_success():
 
 def play_failure():
     playsound(os.path.join(DATA_FOLDER, 'failure.mp3')) 
+
+def load_watchlist():
+    watchlist_file_name = os.path.join(DATA_FOLDER, 'watchlist.csv')
+    with open(watchlist_file_name, newline='') as watchlist:
+        reader = csv.reader(watchlist)
+        next(reader)  # Skip the header
+        stock_symbols =[row[0] for row in reader if row]
+    return stock_symbols
+
+def get_sector_for_sp500_ticker(ticker):
+    grouped_stocks_data = build_stocks_map()
+    for sector, symbols in grouped_stocks_data.items():
+        if ticker in symbols:
+            return sector
+    return 'Unknown'

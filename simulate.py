@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
+import logging
+import statistics
+
 from alpaca_api.api import AlpacaAPI
 from config import Config
 from gemini_model.gemini import StockSuggester
-from utils.common import DATA_FOLDER, build_stocks_map, play_failure, play_success
-import logging
-import statistics
-import os
-import csv
+from utils.common import THREE_DAYS_AGO_DATE, build_stocks_map, get_sector_for_sp500_ticker, \
+    load_watchlist, play_failure, play_success
+from utils.enums import Action
 
 logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
 
@@ -14,40 +14,29 @@ logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
 This is prediction similation based on the latest 60 historical prices for stocks below.
 """
 
-watchlist_file_name = os.path.join(DATA_FOLDER, 'watchlist.csv')
-with open(watchlist_file_name, newline='') as watchlist:
-    reader = csv.reader(watchlist)
-    next(reader)  # Skip the header
-    stock_symbols =[row[0] for row in reader if row]
-print(stock_symbols)
-
+stock_symbols = load_watchlist()
 grouped_stocks_data = build_stocks_map()
-
 alpaca_api = AlpacaAPI(historical_batch_size=65)
-three_days_ago_date = (datetime.now() - timedelta(days=3)).date()
-market_prediction_pct = []
-for symbol in stock_symbols:
-    alpaca_api.fetch_historical_data(ticker=symbol, period='15Min', start=three_days_ago_date)
-    events = []
-    for hst in alpaca_api.historical_data[symbol].to_dict('records'):
-        events.append({ 'time': hst['timestamp'], 'stock': symbol, 'price': hst['close'], 
-            'volume': hst['volume'], 'moving_average': hst['moving_average'] })
-    for sector, symbols in grouped_stocks_data.items():
-        if symbol in symbols:
-            sector = sector
-            break
-    else:
-        sector = 'Unknown'
 
-    prediction = StockSuggester(sector=sector).predict(events)[symbol]
-    
+market_prediction_pct = []
+
+def post_process_suggestion(prediction):
     action = prediction['action']
-    if action in ('buy' , 'strong_buy'):
+    if action in (Action.STRONG_BUY, Action.BUY):
+        # alpaca_api.submit_order(symbol, 1,n.BUY, Action.STRONG_BUY):
         play_success()
-    elif  action in ('sell' , 'strong_sell'):
+    elif  action in (Action.SELL, Action.STRONG_SELL):
         play_failure()
-    if action != 'hold':
+    if action != Action.HOLD:
         logging.info(f'  🔹 Current Position: {alpaca_api.get_position(symbol)}')
+
+
+for symbol in stock_symbols:
+    events = alpaca_api.fetch_historical_data_as_events(ticker=symbol, period='15Min', start=THREE_DAYS_AGO_DATE)
+    sector = get_sector_for_sp500_ticker(symbol)
+    prediction = StockSuggester(sector=sector).predict(events)[symbol]
+    post_process_suggestion(prediction)
     market_prediction_pct.append(prediction['percentage_change'])
-logging.info(f'⚖️ Averge market prediction: {statistics.mean(market_prediction_pct):.4f}%')
+
+logging.info(f'⚖️  Averge market prediction: {statistics.mean(market_prediction_pct):.4f}%')
 

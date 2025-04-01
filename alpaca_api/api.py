@@ -146,3 +146,11 @@ class AlpacaAPI:
             df['minutes_since_open'] = df.index
             self.historical_data[ticker] = df
 
+    def fetch_historical_data_as_events(self, ticker, period, start):
+        self.fetch_historical_data(ticker=ticker, period=period, start=start)
+        events = []
+        for hst in self.historical_data[ticker].to_dict('records'):
+            events.append({ 'time': hst['timestamp'], 'stock': ticker, 'price': hst['close'], 
+                'volume': hst['volume'], 'moving_average': hst['moving_average'] })
+        return events
+

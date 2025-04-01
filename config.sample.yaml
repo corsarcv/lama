@@ -3,3 +3,4 @@ APCA-API-SECRET-KEY: BAR
 HISTORICAL_MARKET_DATA_ENDPOINT: "https://data.alpaca.markets/v2"    
 BASE_URL: "https://paper-api.alpaca.markets"   
 LOG_LEVEL: 10
+TIME_INTERVAL_MINS: 15

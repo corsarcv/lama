@@ -11,6 +11,7 @@ from tensorflow.keras.layers import LSTM, Dense, Input # type: ignore
 import warnings
 
 from config import Config
+from utils.enums import Action
 
 # ========================
 # 🔹 CONFIGURATION SECTION
@@ -76,11 +77,13 @@ MIN_HISTORY_FOR_PREDICTION = LOOKBACK_PERIOD + MIN_RECORDS_FOR_INDICATORS # Need
 # 🔹 Remain the same, but interpretation might change with better model
 # 🔹 Need to scale for N_PREDICT_SRTEPS less than 20
 # ========================
+
+
 THRESHOLDS = {
-    "strong_buy": 0.03,  # Predict price increase > 3%
-    "buy": 0.01,         # Predict price increase > 1% and <= 3%
-    "sell": -0.01,       # Predict price decrease < -1% and >= -3%
-    "strong_sell": -0.03 # Predict price decrease < -3%
+    Action.STRONG_BUY: 0.03,  # Predict price increase > 3%
+    Action.BUY: 0.01,         # Predict price increase > 1% and <= 3%
+    Action.SELL: -0.01,       # Predict price decrease < -1% and >= -3%
+    Action.STRONG_SELL: -0.03 # Predict price decrease < -3%
     # Hold is the default between sell and buy thresholds
 }
 
@@ -514,16 +517,16 @@ class StockSuggester:
             # Scale threshold as they are defined for N_STEPS=20
             scaled_percentage_threshold = percentage_change * 20 / N_PREDICT_STEPS
             # Map percentage change to suggestion
-            if scaled_percentage_threshold > THRESHOLDS["strong_buy"]:
-                action = "strong_buy"
-            elif scaled_percentage_threshold > THRESHOLDS["buy"]:
-                action = "buy"
-            elif scaled_percentage_threshold < THRESHOLDS["strong_sell"]:
-                action = "strong_sell"
-            elif scaled_percentage_threshold < THRESHOLDS["sell"]:
-                 action = "sell"
+            if scaled_percentage_threshold > THRESHOLDS[Action.STRONG_BUY]:
+                action = Action.STRONG_BUY
+            elif scaled_percentage_threshold > THRESHOLDS[Action.BUY]:
+                action = Action.BUY
+            elif scaled_percentage_threshold < THRESHOLDS[Action.STRONG_SELL]:
+                action = Action.STRONG_SELL
+            elif scaled_percentage_threshold < THRESHOLDS[Action.SELL   ]:
+                 action = Action.SELL
             else:
-                action = "hold"
+                action = Action.HOLD
             
             suggestions[stock] = {
                 'action': action, 
@@ -532,12 +535,12 @@ class StockSuggester:
                 'predicted_price': round(final_predicted_price, 4),
                 'prices_vector': [round(p, 4) for p in predicted_prices]
                 }
-            icon = '⏳' if action == 'hold' else '💰' if action in ('buy', 'strong_buy') else '🔻'
+            icon = '⏳' if action == Action.HOLD else '💰' if action in (Action.BUY, Action.STRONG_BUY) else '🔻'
             logging.info(f" {icon} {stock}: Last Price: {last_actual_price:.4f}, " + 
                   f"Predicted Price: {final_predicted_price:.4f}, " + 
                   f"Change: {percentage_change:.2%}, " + 
                   f"Suggestion: {action}")
-            if action != 'hold':
+            if action != Action.HOLD:
                 logging.info(f"  🔹 Suggested pricing vector: {[f'{p:.4f}' for p in predicted_prices]}")
 
         logging.debug("✅ Prediction Process Finished")

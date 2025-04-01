@@ -46,15 +46,4 @@ for sector, symbols in grouped_stocks_data.items():
     else:
         print(f'No events for {sector}. Movng to the next group')
     print(f'🔹 Done processing {sector}\n')
-# Define list of stocks/sectors
-# Need to learch each sector separatelly (though multiple stocks are allowed for seme predictor)
-# Set the start date (~12 months back)
-# Check if we have existing date for the stock in the model and if so, start with that date
-# Start getting historical data in batches (1,000 ?) with 1h interval separately for each stock, 
-# approx 260 days * 6.5 h ~= 1,800 records per stock
-# Format data before sending
-# Feed each batch to predictor
-# stop getting stock data when reaching current time (or when result count less than batch size)
-# We can train model for different numbers of predict steps (1, 5, 20). 
-# We can get price date from history if it is already there for a different number of steps model
 
