@@ -214,6 +214,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(subscribe_and_process_bars())
     except KeyboardInterrupt:
-        logging.error("\n⚠️ Exiting application.")
+        logging.warning("\n⏳  Exiting application.")
+        exit(0)
     except Exception as e:
-        logging.error(f"\n⚠️ Application exited with an error: {e}")
+        logging.error(f"\n⚠️  Application exited with an error: {e}")
