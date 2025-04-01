@@ -1,5 +1,11 @@
 from datetime import datetime, date, timedelta
+from playsound import playsound
 import random
+import csv
+import os
+
+DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
+THREE_DAYS_AGO_DATE = (datetime.now() - timedelta(days=3)).date()
 
 def generate_timestamp():
     return str(datetime.now()).replace(' ', '').replace(':', '_')
@@ -44,3 +50,40 @@ def calculate_median(values):
         mid1 = sorted_values[n // 2 - 1]
         mid2 = sorted_values[n // 2]
         return (mid1 + mid2) / 2
+
+def build_stocks_map():
+    SP500_SOURCE = './data/symbols/sp500.csv'
+    with open(SP500_SOURCE, mode='r') as file:
+        reader = csv.DictReader(file)
+        stock_data = [row for row in reader]
+    grouped_stocks_data = {}
+    for row in stock_data:
+        symbol = row['Symbol']
+        sector = row['Sector'] 
+        if sector not in grouped_stocks_data:
+            grouped_stocks_data[sector] = [symbol]
+        else:
+            grouped_stocks_data[sector].append(symbol) 
+    return grouped_stocks_data
+
+
+def play_success():
+    playsound(os.path.join(DATA_FOLDER, 'success.mp3')) 
+
+def play_failure():
+    playsound(os.path.join(DATA_FOLDER, 'failure.mp3')) 
+
+def load_watchlist():
+    watchlist_file_name = os.path.join(DATA_FOLDER, 'watchlist.csv')
+    with open(watchlist_file_name, newline='') as watchlist:
+        reader = csv.reader(watchlist)
+        next(reader)  # Skip the header
+        stock_symbols =[row[0] for row in reader if row]
+    return stock_symbols
+
+def get_sector_for_sp500_ticker(ticker):
+    grouped_stocks_data = build_stocks_map()
+    for sector, symbols in grouped_stocks_data.items():
+        if ticker in symbols:
+            return sector
+    return 'Unknown'

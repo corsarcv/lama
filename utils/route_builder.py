@@ -7,14 +7,14 @@ class RouteBuilder:
 
         @classmethod
         def get_base_url(cls):
-            return Config()['HISTORICAL_MARKET_DATA_ENDPOINT']
+            return Config.HISTORICAL_MARKET_DATA_ENDPOINT
         
         @classmethod
         def get_headers(cls):
             return {
                 "accept": "application/json",
-                "APCA-API-KEY-ID": Config()[APCA_API_KEY_ID],
-                "APCA-API-SECRET-KEY": Config()[APCA_API_SECRET_KEY ]
+                "APCA-API-KEY-ID": Config.APCA_API_KEY_ID,
+                "APCA-API-SECRET-KEY": Config.APCA_API_SECRET_KEY
         }
 
         @classmethod

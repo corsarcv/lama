@@ -1,38 +1,25 @@
 import os
-import datetime
+
 import pickle
-import copy
 import numpy as np
 import pandas as pd
 import talib
 import time
 import random
-import alpaca_trade_api as tradeapi
+
 import tensorflow as tf
 from collections import deque
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential, load_model # type: ignore
 from tensorflow.keras.layers import Dense, Dropout # type: ignore
 from tensorflow.keras.optimizers import Adam # type: ignore
+from alpaca_api.api import ALPACA_ENABLED, AlpacaAPI
 
-from config import Config
-from utils.constants import APCA_API_KEY_ID, APCA_API_SECRET_KEY
 
 # ========================
 # 🔹 CONFIGURATION SECTION
 # ========================
 
-# Alpaca API Keys (Replace with your actual keys)
-ALPACA_API_KEY = Config()[APCA_API_KEY_ID]  # Add your Alpaca API Key
-ALPACA_SECRET_KEY = Config()[APCA_API_SECRET_KEY]  # Add your Alpaca Secret Key
-
-BASE_URL = "https://paper-api.alpaca.markets" # Use live trading by changing to live endpoint
-
-ALPACA_ENABLED = bool(ALPACA_API_KEY and ALPACA_SECRET_KEY)
-
-# Connect to Alpaca API
-if ALPACA_ENABLED:
-    api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY, BASE_URL, api_version='v2')
 
 # File paths for saving model and memory
 MODEL_PATH = "DQN_trading_model.keras"
@@ -113,13 +100,14 @@ class Strategy:
 class DQNTradingAgent:
 
     def __init__(self, tickers, cash=20000, strategy=None):
+
+        self.alpaca_api = AlpacaAPI(cash)
         self.tickers = tickers
         self.cash = cash
         self.holdings = {ticker: 0 for ticker in tickers}
         self.position_prices = {ticker: None for ticker in tickers}
         self.trade_log = []
         self.memory = deque(maxlen=2000)
-        self.historical_batch_size = 100
         self.training_cycles = 0  # Track the number of learning updates
         self.reward_history = []  # Store average rewards per training cycle
         self.loss_history = []  # Store loss values
@@ -142,7 +130,7 @@ class DQNTradingAgent:
         self.historical_data = {ticker: None for ticker in tickers}
 
         if ALPACA_ENABLED:
-            self.check_alpaca_account()
+            self.cash = self.appaca_api.check_alpaca_account()
 
     # ========================
     # 🔹 Strategy
@@ -180,95 +168,7 @@ class DQNTradingAgent:
     def max_position_size(self):
         return self.strategy.max_position_size
     
-    # ========================
-    # 🔹 ALPACA ACCOUNT CHECK
-    # ========================
-
-    def check_alpaca_account(self):
-        """Fetch account balance from Alpaca API."""
-        if not ALPACA_ENABLED:
-            return
-        account = api.get_account()
-        self.cash = float(account.cash)
-        print(f"💰 Alpaca Account Balance: ${self.cash}")
-
-    # ==========================
-    # 🔹 LIVE MARKET DATA FETCH
-    # ==========================
-
-    def fetch_live_price(self, ticker):
-        """Fetch real-time stock price from Alpaca."""
-        if not ALPACA_ENABLED:
-            return random.uniform(100, 200)  # Simulated live price
-        try:
-            latest_bar = api.get_latest_bar(ticker)
-            if not latest_bar:
-                return None
-
-            latest_data = {
-                "timestamp": latest_bar.t,
-                "open": latest_bar.o,
-                "high": latest_bar.h,
-                "low": latest_bar.l,
-                "close": latest_bar.c,
-                "volume": latest_bar.v
-            }
-
-            # Update historical prices dataset
-            latest_df = pd.DataFrame([latest_data]) 
-            self.historical_data[ticker] = pd.concat([self.historical_data[ticker], latest_df], ignore_index=True)
-            self.perform_timestamp_calculations_on_historical_prices(self.historical_data[ticker])
-
-            return latest_bar.c
-        except Exception as ex:
-            print("⚠️ Error on fetching historical data:", ex)
-            return None
-
-    # ==========================
-    # 🔹 HISTORICAL DATA FETCHING & HANDLING
-    # ==========================
-    def fetch_historical_data(self, ticker):
-        """Fetch historical stock data once per ticker."""
-        if ALPACA_ENABLED:
-            bars = api.get_bars(ticker, '1Min', limit=self.historical_batch_size, sort='desc')
-            
-            bars.df.reset_index()  # Reset index to move timestamp from index to a column
-            
-            df = pd.DataFrame({
-                'timestamp': [bar.t for bar in bars],  # UTC Timestamps from Alpaca
-                'open': [bar.o for bar in bars],
-                'high': [bar.h for bar in bars],
-                'low': [bar.l for bar in bars],
-                'close': [bar.c for bar in bars],
-                'volume': [bar.v for bar in bars],
-            })
-            # Sorting by timestamp  because it is in desc order now
-            df = df.sort_values(by='timestamp', ascending=True) 
-            df = df.reset_index(drop=True)
-            
-            self.perform_timestamp_calculations_on_historical_prices(df)
-            self.historical_data[ticker] = df
-        else:
-            data = []
-            base_price = random.uniform(100, 200)
-            for _ in range(100):
-                price = base_price * random.uniform(0.98, 1.02)
-                data.append({'open': price, 'high': price * 1.01, 'low': price * 0.99, 
-                             'close': price, 'volume': random.randint(1000, 5000),
-                             'timestamp': datetime.utcnow()})
-                             
-            df = pd.DataFrame(data)
-            df['minutes_since_open'] = df.index
-            self.historical_data[ticker] = df
     
-    def perform_timestamp_calculations_on_historical_prices(self, df):
-            # Convert timestamps to datetime format and adjust to EST
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms', utc=True).dt.tz_convert('America/New_York')
-
-            # Extract time-based features
-            df['hour'] = df['timestamp'].dt.hour
-            df['minute'] = df['timestamp'].dt.minute
-            df['minutes_since_open'] = (df['hour'] - 9) * 60 + df['minute']  # Market opens at 9:30 AM EST
 
     # ==========================
     # 🔹 TRADE EXECUTION (LIVE)
@@ -301,7 +201,7 @@ class DQNTradingAgent:
             self.holdings[ticker] += shares
             self.position_prices[ticker] = price
             if ALPACA_ENABLED:
-                api.submit_order(
+                self.alpaca_api.submit_order(
                     symbol=ticker, qty=shares, side='buy',
                     type='market', time_in_force='gtc'
                 )
@@ -313,7 +213,7 @@ class DQNTradingAgent:
             self.realized_profit_loss += (price - self.position_prices[ticker]) * self.holdings[ticker]
             self.cash += self.holdings[ticker] * price
             if ALPACA_ENABLED:
-                api.submit_order(
+                self.alpaca_api.submit_order(
                     symbol=ticker, qty=self.holdings[ticker], side='sell',
                     type='market', time_in_force='gtc'
                 )
@@ -321,6 +221,7 @@ class DQNTradingAgent:
             self.position_prices[ticker] = None
             self.trade_log.append({'Action': 'SELL', 'Ticker': ticker, 'Price': price, 'Source': action_source})
             print(f"✅ Sold {ticker} at ${price} {action_source}")
+
 
 
     def load_or_build_model(self):
@@ -550,17 +451,17 @@ class DQNTradingAgent:
     def run_trading_loop(self, episodes=3, sleep_time=2):
         """Run the RL-based trading loop efficiently with optimized data fetching."""
         for ticker in self.tickers:
-            self.fetch_historical_data(ticker)  # Fetch once per session
+            self.alpaca_api.fetch_historical_data(ticker)  # Fetch once per session
         print('✅ Loaded historical prices')
         print("-" * 50) 
         for episode in range(episodes):
             for ticker in self.tickers:
-                current_price = self.fetch_live_price(ticker)
+                current_price = self.alpaca_api.fetch_live_price(ticker)
                 if current_price is None:
                     print(f"⚠️ Skipping {ticker}, no live price available.")
                     continue  
 
-                df = self.historical_data[ticker]
+                df = self.alpaca_api.historical_data[ticker]
                 df = self.compute_indicators(df)
                 
                 # This captures the current state of the market before any trade decision is made.
@@ -568,7 +469,7 @@ class DQNTradingAgent:
                 state = self.get_state(df, ticker)
 
                 action = self.select_action(state)
-                self.execute_trade(action, current_price, ticker)
+                self.alpaca_api.execute_trade(action, current_price, ticker)
                 
                 self.calculate_unrealized_profit_loss(df)
                 reward = self.cash + self.unrealized_profit_loss + self.realized_profit_loss

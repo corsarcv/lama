@@ -12,3 +12,10 @@ class TREND(Enum):
     ASCENDING = "Ascending"
     DESCENDING = "Descending"
     NO_CLEAR_TREND = "No clear trend"
+
+class Action(Enum):
+    BUY = 'buy'
+    STRONG_BUY = 'strong_buy'
+    SELL = 'sell'
+    STRONG_SELL = 'strong_sell'
+    HOLD = 'hold'
