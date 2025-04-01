@@ -7,3 +7,4 @@ data/dumps/*
 data/model_learning/*
 __pycache__
 .vscode
+utils/__pycache__

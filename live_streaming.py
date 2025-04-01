@@ -199,7 +199,7 @@ async def subscribe_and_process_bars():
         logging.error(f"⚠️ An error occurred during streaming: {e}", exc_info=True)
     finally:
         logging.info("⏳ Closing Alpaca stream connection...")
-        await stream.close()
+        await stream.stop_ws()
         logging.info("✅ Stream closed.")
 
 
