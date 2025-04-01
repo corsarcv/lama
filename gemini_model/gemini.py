@@ -145,7 +145,7 @@ class StockSuggester:
                 self.history.dropna(subset=['price', 'volume', 'moving_average'], inplace=True)
                 logging.debug(f"📥 History loaded successfully from {self.history_path}")
             except Exception as e:
-                logging.warn(f"⚠️ Warning: Could not load history from {self.history_path}. Error: {e}")
+                logging.warning(f"⚠️ Warning: Could not load history from {self.history_path}. Error: {e}")
                 self.history = pd.DataFrame(columns=['time', 'stock', 'price', 'volume', 'moving_average'])
         else:
             logging.error(f"⚠️ History file {self.history_path} not found.")

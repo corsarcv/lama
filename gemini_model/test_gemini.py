@@ -110,9 +110,10 @@ class ModelTests:
         # Call the predict method
         predictions = suggester.predict(prediction_events)
 
+        import logging
+
         logging.debug("\n💰 Final Suggestions:")
         # Use logging.debug for better dictionary formatting if many stocks
-        import logging
         logging.debug(predictions)
 
         # Expected outcome hints:
