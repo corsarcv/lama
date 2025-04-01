@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+# TODO: Make it starting from a subfolder (PYTHONPATH?)
+
 # ========================
 # 🔹 Sample model training and predicting
 # ========================

@@ -90,7 +90,9 @@ class StockSuggester:
     Provides stock trading suggestions based on historical price data and technical indicators
     using an LSTM model with 6 features.
     """
-    def __init__(self, sector='default', n_predict_steps=N_PREDICT_STEPS,
+    def __init__(self, sector='default', 
+                 n_predict_steps=N_PREDICT_STEPS,
+                 lookback_period = LOOKBACK_PERIOD,
                  model_path=MODEL_FILENAME, 
                  history_path=HISTORY_FILENAME, 
                  scalers_path=SCALERS_FILENAME):
@@ -100,6 +102,7 @@ class StockSuggester:
         logging.debug("Initializing Stock Suggester (6 Features)...")
         self.sector = sector
         self.n_predict_steps = n_predict_steps
+        self.lookback_period = lookback_period
         self.model_path = model_path.format(sector=sector, n_predict_steps=n_predict_steps)
         self.history_path = history_path.format(sector=sector, n_predict_steps=n_predict_steps)
         self.scalers_path = scalers_path.format(sector=sector, n_predict_steps=n_predict_steps)
@@ -236,7 +239,7 @@ class StockSuggester:
         # 1. Calculate indicators
         stock_data_with_indicators = self._calculate_indicators(stock_data)
 
-        if stock_data_with_indicators.empty or len(stock_data_with_indicators) < LOOKBACK_PERIOD + self.n_predict_steps:
+        if stock_data_with_indicators.empty or len(stock_data_with_indicators) < self.lookback_period + self.n_predict_steps:
             # logging.debug(f"   -> Not enough data after indicator calculation ({len(stock_data_with_indicators)}) to create sequences (min {LOOKBACK_PERIOD + 1}).")
             return None, None, None # Not enough data
 
@@ -249,8 +252,8 @@ class StockSuggester:
         # 3. Create sequences
         X, y = [], []
         # Adjust loop range: stop earlier to allow N_PREDICT_STEPS targets
-        for i in range(LOOKBACK_PERIOD, len(scaled_features) - self.n_predict_steps + 1): # MODIFIED LOOP END
-            X.append(scaled_features[i-LOOKBACK_PERIOD:i, :])
+        for i in range(self.lookback_period, len(scaled_features) - self.n_predict_steps + 1): # MODIFIED LOOP END
+            X.append(scaled_features[i-self.lookback_period:i, :])
             # Target 'y' is now a vector of the next N_PREDICT_STEPS scaled prices
             y.append(scaled_features[i : i + self.n_predict_steps, PRICE_INDEX]) # MODIFIED TARGET
             # Make sure y is a numpy array for the model
@@ -358,7 +361,7 @@ class StockSuggester:
         if self.model is None:
             logging.debug("⏳ Building new LSTM model (Multi-Step Output).")
             self.model = Sequential([
-                Input(shape=(LOOKBACK_PERIOD, N_FEATURES)), # Input shape uses N_FEATURES
+                Input(shape=(self.lookback_period, N_FEATURES)), # Input shape uses N_FEATURES
                 LSTM(64, return_sequences=True, activation='relu'), # Increased units slightly
                 LSTM(64, activation='relu'),
                 Dense(32, activation='relu'), # Increased units slightly
@@ -460,13 +463,13 @@ class StockSuggester:
             # Calculate indicators on the combined data for this stock
             stock_data_with_indicators = self._calculate_indicators(stock_data)
 
-            if stock_data_with_indicators.empty or len(stock_data_with_indicators) < LOOKBACK_PERIOD:
-                logging.warning(f" ⚠️ Insufficient history for {stock} after indicator calculation ({len(stock_data_with_indicators)} < {LOOKBACK_PERIOD})")
+            if stock_data_with_indicators.empty or len(stock_data_with_indicators) < self.lookback_period:
+                logging.warning(f" ⚠️ Insufficient history for {stock} after indicator calculation ({len(stock_data_with_indicators)} < {self.lookback_period})")
                 suggestions[stock] = "Insufficient history"
                 continue
 
             # Prepare the last LOOKBACK_PERIOD data points (all features) for prediction
-            last_sequence_features_unscaled = stock_data_with_indicators[FEATURE_COLS].values[-LOOKBACK_PERIOD:]
+            last_sequence_features_unscaled = stock_data_with_indicators[FEATURE_COLS].values[-self.lookback_period:]
             # Still need the single last actual price for reference/comparison if needed            
             last_actual_price = last_sequence_features_unscaled[-1, PRICE_INDEX] # Get the last actual price
 
@@ -475,7 +478,7 @@ class StockSuggester:
             scaled_sequence = scaler.transform(last_sequence_features_unscaled)
 
             # Reshape for LSTM [1, time_steps, features]
-            X_pred = np.reshape(scaled_sequence, (1, LOOKBACK_PERIOD, N_FEATURES))
+            X_pred = np.reshape(scaled_sequence, (1, self.lookback_period, N_FEATURES))
 
             # Make prediction (vector, predicts the next scaled prices)
             predicted_scaled_prices_vector = self.model.predict(X_pred, verbose=0)[0] # Shape: (N_PREDICT_STEPS,)
@@ -547,116 +550,3 @@ class StockSuggester:
     def get_last_history_timestamp_for_stock(self, stock):
         subset = self.history.query(f"stock == '{stock}'")
         return subset['time'].iloc[-1] if not subset.empty else None
-
-# ========================
-# 🔹 Sample model training and predicting
-# ========================
-if __name__ == "__main__":
-    # Create instance (will load data if exists)
-    suggester = StockSuggester(n_predict_steps=5)
-
-    # === Example Learning Phase ===
-    # Simulate data with volume and a dummy moving average
-    learning_events = []
-    base_time = pd.Timestamp.now() - pd.Timedelta(days=20) # Need more days for indicators
-    stocks = {'STOCK_A': 100, 'STOCK_B': 200, 'STOCK_C': 50}
-    trends = {'STOCK_A': 0.0008, 'STOCK_B': -0.0006, 'STOCK_C': 0.0001}
-    vols = {'STOCK_A': 10000, 'STOCK_B': 50000, 'STOCK_C': 5000}
-    noise = {'STOCK_A': 0.015, 'STOCK_B': 0.020, 'STOCK_C': 0.010}
-
-    all_stock_data = {}
-    column_names = ['time', 'stock', 'price', 'volume', 'moving_average'] # Define column names
-
-    for stock, price in stocks.items():
-        stock_prices = []
-        stock_times = []
-        current_stock_learning_events = []
-        for i in range(300): # Generate more data points
-            time = base_time + pd.Timedelta(hours=i)
-            price = price * (1 + np.random.normal(trends[stock], noise[stock]))
-            volume = vols[stock] * (1 + np.random.uniform(-0.3, 0.3))
-            stock_prices.append(price)
-            stock_times.append(time)
-            # Simple Moving Average calculation for dummy data (e.g., 10 periods)
-            current_ma = np.mean(stock_prices[-10:]) if len(stock_prices) >= 10 else price
-            event_tuple = (time, stock, price, max(0, volume), current_ma)
-            learning_events.append(event_tuple) # Ensure volume >= 0
-            current_stock_learning_events.append(event_tuple) # Append to list for this stock only
-
-        # Store for prediction example continuity
-        temp_df_stock_only = pd.DataFrame(current_stock_learning_events, columns=column_names)
-        # Store this stock-specific DataFrame
-        # No need to filter temp_df_stock_only further as it only contains data for 'stock'
-        all_stock_data[stock] = temp_df_stock_only.copy()
-
-
-    # Add data for a stock that will likely have insufficient history for prediction later
-    price_d = 75
-    for i in range(40): # Less than MIN_HISTORY_FOR_PREDICTION
-         time = base_time + pd.Timedelta(hours=i)
-         price_d = price_d * (1 + np.random.normal(0, 0.01))
-         volume = 1000 * (1 + np.random.uniform(-0.3, 0.3))
-         ma = price_d # Simplified MA for short history
-         learning_events.append((time, 'STOCK_D', price_d, max(0, volume), ma))
-
-    # Call the learn method
-    suggester.learn(learning_events)
-
-    # === Example Prediction Phase ===
-    prediction_events = []
-    current_time = pd.Timestamp.now()
-
-    for stock in ['STOCK_A', 'STOCK_B', 'STOCK_C']: # Predict for learned stocks
-        try:
-            # Get last known state to continue simulation realistically
-            last_row = suggester.history[suggester.history['stock'] == stock].iloc[-1]
-            last_price = last_row['price']
-            last_vol = last_row['volume']
-            # Use the actual history for MA calculation base
-            hist_prices = suggester.history[suggester.history['stock'] == stock]['price'].tolist()
-
-            for i in range(5): # Add a few recent points
-                time = current_time + pd.Timedelta(minutes=i * 10)
-                # Simulate price change similar to its trend
-                last_price *= (1 + np.random.normal(trends[stock]*0.5, noise[stock]*0.5))
-                # Simulate volume change
-                last_vol *= (1 + np.random.uniform(-0.1, 0.1))
-                # Calculate MA based on updated history + new points
-                current_hist_prices = hist_prices + [last_price]
-                current_ma = np.mean(current_hist_prices[-10:]) if len(current_hist_prices) >= 10 else last_price
-                hist_prices.append(last_price) # Add to temp history for next step MA calc
-
-                prediction_events.append((time, stock, last_price, max(0, last_vol), current_ma))
-
-        except IndexError:
-             logging.debug(f"\nWarning: Could not retrieve last price for {stock}. Skipping prediction simulation for it.")
-             # Add dummy events if needed for testing structure
-             # prediction_events.append((current_time, stock, stocks[stock]*1.01, vols[stock], stocks[stock]*1.01))
-
-
-    # Add event for the stock with known insufficient history
-    try:
-         last_price_d = suggester.history[suggester.history['stock'] == 'STOCK_D']['price'].iloc[-1]
-         prediction_events.append((current_time, 'STOCK_D', last_price_d * 1.01, 1100, last_price_d * 1.01))
-    except IndexError:
-        prediction_events.append((current_time, 'STOCK_D', 76, 1100, 76))
-
-    # Add event for a completely new stock (model hasn't seen it)
-    prediction_events.append((current_time, 'STOCK_NEW', 500, 5000, 500))
-
-
-    # Call the predict method
-    predictions = suggester.predict(prediction_events)
-
-    logging.debug("\n💰 Final Suggestions:")
-    # Use logging.debug for better dictionary formatting if many stocks
-    import logging
-    logging.debug.logging.debug(predictions)
-
-    # Expected outcome hints:
-    # STOCK_A: Likely Buy/Strong Buy (upward trend simulated)
-    # STOCK_B: Likely Sell/Strong Sell (downward trend simulated)
-    # STOCK_C: Likely Hold (slight trend, depends on recent noise)
-    # STOCK_D: insufficient history (had only 40 records, likely not enough after indicator NaNs + LOOKBACK_PERIOD)
-    # STOCK_NEW: insufficient history (no scaler exists)
-

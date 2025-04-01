@@ -4,6 +4,8 @@ import random
 import csv
 import os
 
+DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
+
 def generate_timestamp():
     return str(datetime.now()).replace(' ', '').replace(':', '_')
 
@@ -65,11 +67,7 @@ def build_stocks_map():
 
 
 def play_success():
-    current_folder = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(current_folder, '../data')
-    playsound(os.path.join(data_folder, 'success.mp3')) 
+    playsound(os.path.join(DATA_FOLDER, 'success.mp3')) 
 
 def play_failure():
-    current_folder = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(current_folder, '../data')
-    playsound(os.path.join(data_folder, 'failure.mp3')) 
+    playsound(os.path.join(DATA_FOLDER, 'failure.mp3')) 

@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from alpaca_api.api import AlpacaAPI
 from config import Config
 from gemini_model.gemini import StockSuggester
-from utils.common import build_stocks_map, play_failure, play_success
+from utils.common import DATA_FOLDER, build_stocks_map, play_failure, play_success
 import logging
 import statistics
+import os
+import csv
 
 logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
 
@@ -12,11 +14,12 @@ logging.basicConfig(level=Config.LOG_LEVEL, format='%(asctime)s %(message)s')
 This is prediction similation based on the latest 60 historical prices for stocks below.
 """
 
-stock_symbols = ["AAPL", "MSFT", "GOOGL", "TSLA"] # Example stocks
-stock_symbols = stock_symbols + ['ERIE', 'STLD', 'MKTX', 'BX', 'NUE', 'MOS', 'BLK', 'COF', 'KKR']
-stock_symbols = stock_symbols + ['WRB', 'PRU', 'KEY', 'CTVA', 'MTB', 'IP','CF', 'VMC', 'EMN', 'SHW', 'FCX',
-                                 'HBAN', 'RF', 'NDAQ', 'AMCR', 'IFF', 'FITB', 'PKG', 'GS', 'MLM',
-                                 'USB', 'ACGL', 'BALL', 'C', 'CME', 'CFG', 'BEN', 'LYB', 'IVZ', 'AVY' ]
+watchlist_file_name = os.path.join(DATA_FOLDER, 'watchlist.csv')
+with open(watchlist_file_name, newline='') as watchlist:
+    reader = csv.reader(watchlist)
+    next(reader)  # Skip the header
+    stock_symbols =[row[0] for row in reader if row]
+print(stock_symbols)
 
 grouped_stocks_data = build_stocks_map()
 
@@ -44,7 +47,7 @@ for symbol in stock_symbols:
     elif  action in ('sell' , 'strong_sell'):
         play_failure()
     if action != 'hold':
-        logging.info(f' 🔹 Current Position: {alpaca_api.get_position(symbol)}')
+        logging.info(f'  🔹 Current Position: {alpaca_api.get_position(symbol)}')
     market_prediction_pct.append(prediction['percentage_change'])
 logging.info(f'⚖️ Averge market prediction: {statistics.mean(market_prediction_pct):.4f}%')
 
