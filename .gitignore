@@ -4,6 +4,7 @@ replay_memory.pkl*
 training_stats.pkl*
 .venv
 data/dumps/*
+data/logs/*
 data/model_learning/*
 __pycache__
 .vscode

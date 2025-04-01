@@ -11,6 +11,7 @@ from tensorflow.keras.layers import LSTM, Dense, Input # type: ignore
 import warnings
 
 from config import Config
+from utils.common import DATA_FOLDER
 from utils.enums import Action
 
 # ========================
@@ -29,11 +30,11 @@ warnings.filterwarnings('ignore', category=UserWarning, module='pandas_ta')
 # ========================
 # 🔹 CONSTANTS
 # ========================
-CURRENT_FOLDER  = os.path.dirname(os.path.abspath(__file__))
-DATA_FOLDER = os.path.abspath(os.path.join(CURRENT_FOLDER, './../data/model_learning/gemini'))
-MODEL_FILENAME = os.path.join( DATA_FOLDER, 'lstm_model_6f_{sector}_{n_predict_steps}.keras')
-SCALERS_FILENAME = os.path.join(DATA_FOLDER, 'sscalers_6f_{sector}_{n_predict_steps}.joblib')
-HISTORY_FILENAME = os.path.join(DATA_FOLDER, 'trade_history_6f_{sector}.csv')
+
+MODEL_DATA_FOLDER = os.path.join(DATA_FOLDER, "model_learning", "gemini")
+MODEL_FILENAME = os.path.join( MODEL_DATA_FOLDER, 'lstm_model_6f_{sector}_{n_predict_steps}.keras')
+SCALERS_FILENAME = os.path.join(MODEL_DATA_FOLDER, 'sscalers_6f_{sector}_{n_predict_steps}.joblib')
+HISTORY_FILENAME = os.path.join(MODEL_DATA_FOLDER, 'trade_history_6f_{sector}.csv')
 
 # ========================
 # 🔹 Technical Indicator Parameters (adjust as needed)
@@ -427,7 +428,7 @@ class StockSuggester:
         # 1. Prepare Input Data
         try:
             recent_data = pd.DataFrame(events, columns=['time', 'stock', 'price', 'volume', 'moving_average'])
-            recent_data['time'] = pd.to_datetime(recent_data['time'])
+            recent_data['time'] = pd.to_datetime(recent_data['time'], utc=True)
             for col in ['price', 'volume', 'moving_average']:
                  recent_data[col] = pd.to_numeric(recent_data[col], errors='coerce')
             recent_data.dropna(subset=['time', 'stock', 'price', 'volume', 'moving_average'], inplace=True)
@@ -509,6 +510,9 @@ class StockSuggester:
             # Option 2: Base it on average trend, or other criteria... (requires definition)
             # For now will keep Option #1
             final_predicted_price = predicted_prices[-1]
+
+            if len(predicted_prices) > 1 and len(set(predicted_prices)) == 1 and final_predicted_price != last_actual_price:
+                logging.warning(f"The model predictions seems to be off for {stock}: {[f'{p:.4f}' for p in predicted_prices]}")
 
             # Calculate percentage change from the last actual price
             # Avoid division by zero if last_actual_price is 0
