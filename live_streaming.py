@@ -13,7 +13,7 @@ from alpaca_api.api import BASE_URL
 from alpaca_api.api import AlpacaAPI
 from config import Config
 from gemini_model.gemini import StockSuggester
-from utils.common import get_sector_for_sp500_ticker, load_watchlist, play_failure, play_success
+from utils.common import THREE_DAYS_AGO_DATE, get_sector_for_sp500_ticker, load_watchlist, play_failure, play_success
 from utils.enums import Action
 
 # ========================
@@ -35,7 +35,7 @@ DATA_FEED = 'iex'
 # We will process event if either queue becomes full or when the oldest event timestamp is older or equal to the interval
 live_events_history: Dict[str, Deque[float]] = defaultdict(lambda: deque(maxlen=Config.TIME_INTERVAL_MINS))
 historical_events: Dict[str, Dict] = {}
-predictions = Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+predictions: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 alpaca_api = AlpacaAPI(historical_batch_size=60)
 
 # ========================
@@ -72,16 +72,6 @@ def post_process_suggestion(prediction, symbol):
         prediction['target_date'] =  datetime.now() + timedelta(minutes=Config.TIME_INTERVAL_MINS * 5 )  
         predictions[symbol].append(prediction)
 
-
-# ========================
-# 🔹 Loading a recent history for a trade to feed to the model 
-# ========================    
-def collect_events_history(stock):
-    events = []
-    for hst in alpaca_api.historical_data[stock].to_dict('records'):
-        events.append({ 'time': hst['timestamp'], 'stock': stock, 'price': hst['close'], 
-            'volume': hst['volume'], 'moving_average': hst['moving_average'] })
-    return events
 
 # ========================
 # 🔹 Core Logic, async handling of live events
@@ -183,7 +173,7 @@ async def subscribe_and_process_bars():
 
     logging.info(f'Getting recent history for stocks {stock_symbols}')
     for symbol in stock_symbols:
-        historical_events[symbol] = collect_events_history(symbol)
+        historical_events[symbol] = alpaca_api.fetch_historical_data_as_events(ticker=symbol, period='15Min', start=THREE_DAYS_AGO_DATE)
 
     logging.info(f"Attempting to connect to Alpaca Stream API at {BASE_URL} for symbols: {stock_symbols}")
     logging.info(f"Using data feed: {DATA_FEED}")
