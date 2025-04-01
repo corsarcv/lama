@@ -7,9 +7,10 @@ from utils.common import build_stocks_map
 
 ALPACA_API = AlpacaAPI(historical_batch_size=10000)
 
-grouped_stocks_data = build_stocks_map()
-
 single_stock = None  # 'COST'
+stop_if_history_exists = True
+
+grouped_stocks_data = build_stocks_map()
 
 year_back_date = datetime.now() - timedelta(days=365)
 
@@ -23,11 +24,12 @@ for sector, symbols in grouped_stocks_data.items():
         if single_stock and symbol != single_stock:
             continue
         last_timestamp = suggester.get_last_history_timestamp_for_stock(symbol)
-        if last_timestamp:
+        if last_timestamp and stop_if_history_exists:
             print(f'Model already has data for {symbol} as of {last_timestamp}. Skipping...')
             continue
     
-        start_date = last_timestamp if last_timestamp is not None else year_back_date
+        start_date = year_back_date
+        
         ALPACA_API.fetch_historical_data(ticker=symbol, period='15Min', start=start_date.strftime('%Y-%m-%d'))
         df = ALPACA_API.historical_data[symbol]
         list_of_dicts = df.to_dict(orient='records')
@@ -41,8 +43,10 @@ for sector, symbols in grouped_stocks_data.items():
             dict(time=r['timestamp'], stock=symbol, price=r['close'],
                 volume=r['volume'], moving_average=r['moving_average']) for r in list_of_dicts])
     # ['time', 'stock', 'price', 'volume', 'moving_average']
+    
+    # The main point here - learning
     if len(events) > 0:
-        suggester.learn(events)
+        suggester.learn(events, update_history=last_timestamp is None)
     else:
         print(f'No events for {sector}. Movng to the next group')
     print(f'🔹 Done processing {sector}\n')

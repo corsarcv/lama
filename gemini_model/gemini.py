@@ -32,8 +32,8 @@ warnings.filterwarnings('ignore', category=UserWarning, module='pandas_ta')
 CURRENT_FOLDER  = os.path.dirname(os.path.abspath(__file__))
 DATA_FOLDER = os.path.abspath(os.path.join(CURRENT_FOLDER, './../data/model_learning/gemini'))
 MODEL_FILENAME = os.path.join( DATA_FOLDER, 'lstm_model_6f_{sector}_{n_predict_steps}.keras')
-HISTORY_FILENAME = os.path.join(DATA_FOLDER, 'trade_history_6f_{sector}_{n_predict_steps}.csv')
 SCALERS_FILENAME = os.path.join(DATA_FOLDER, 'sscalers_6f_{sector}_{n_predict_steps}.joblib')
+HISTORY_FILENAME = os.path.join(DATA_FOLDER, 'trade_history_6f_{sector}.csv')
 
 # ========================
 # 🔹 Technical Indicator Parameters (adjust as needed)
@@ -106,9 +106,9 @@ class StockSuggester:
         self.sector = sector
         self.n_predict_steps = n_predict_steps
         self.lookback_period = lookback_period
-        self.model_path = model_path.format(sector=sector, n_predict_steps=n_predict_steps)
-        self.history_path = history_path.format(sector=sector, n_predict_steps=n_predict_steps)
+        self.model_path = model_path.format(sector=sector, n_predict_steps=n_predict_steps)        
         self.scalers_path = scalers_path.format(sector=sector, n_predict_steps=n_predict_steps)
+        self.history_path = history_path.format(sector=sector)
         self.model = None
         # Initialize history with new columns
         self.history = pd.DataFrame(columns=['time', 'stock', 'price', 'volume', 'moving_average'])
@@ -269,7 +269,7 @@ class StockSuggester:
     # ========================
     # 🔹 LEARN Public Method
     # ========================
-    def learn(self, events):
+    def learn(self, events, update_history=True):
         """
         Learns from a series of events (including price, volume, MA) and updates the model.
 
@@ -303,11 +303,14 @@ class StockSuggester:
             return
 
         # 2. Append to History and Save
-        self.history = pd.concat([self.history, new_data], ignore_index=True)
-        # Drop based on more columns now to avoid duplicates if needed
-        self.history = self.history.drop_duplicates(subset=['time', 'stock']).sort_values(by='time').reset_index(drop=True)
-        self._save_history()
-        logging.debug(f"✅ History updated. Total records: {len(self.history)}")
+        if update_history:
+            self.history = pd.concat([self.history, new_data], ignore_index=True)
+            # Drop based on more columns now to avoid duplicates if needed
+            self.history = self.history.drop_duplicates(subset=['time', 'stock']).sort_values(by='time').reset_index(drop=True)
+            self._save_history()
+            logging.debug(f"✅ History updated. Total records: {len(self.history)}")
+        else:
+            logging.warning('⚠️ Skipping history update.')
 
         # 3. Prepare Data for Training (per stock)
         all_X, all_y = [], []

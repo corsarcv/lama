@@ -5,65 +5,74 @@ from typing import List, Dict, Any, Deque
 import pandas as pd  # For easy timestamp conversion
 
 # Use alpaca_trade_api for streaming V2 data
-import alpaca_trade_api as tradeapi
 from alpaca_trade_api.stream import Stream
 from alpaca_trade_api.common import URL
 from alpaca_api.api import ALPACA_API_KEY as API_KEY
 from alpaca_api.api import ALPACA_SECRET_KEY as SECRET_KEY
 from alpaca_api.api import BASE_URL
 from alpaca_api.api import AlpacaAPI
+from config import Config
 from gemini_model.gemini import StockSuggester
+from utils.common import get_sector_for_sp500_ticker, load_watchlist, play_failure, play_success
+from utils.enums import Action
 
-# --- Configuration ---
-# Load API keys from environment variables for security
-# Set these in your environment:
-# export APCA_API_KEY_ID='YOUR_KEY_ID'
-# export APCA_API_SECRET_KEY='YOUR_SECRET_KEY'
-# export APCA_API_BASE_URL='https://paper-api.alpaca.markets' # Or live URL
-# API_KEY = # os.getenv("APCA_API_KEY_ID")
-# SECRET_KEY = os.getenv("APCA_API_SECRET_KEY")
-# BASE_URL = os.getenv("APCA_API_BASE_URL", "https://paper-api.alpaca.markets") # Default to paper
+# ========================
+# 🔹 Logging Setup
+# ========================
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# ========================
+# 🔹 Configuration
+# ========================
 
 # Configure which data feed to use ('sip', 'iex', 'otaa')
 # 'sip' generally requires a paid subscription for real-time minute bars
 DATA_FEED = 'iex' 
 
-# Moving Average Configuration
-MA_PERIOD = 5 # Calculate a 5-period simple moving average
-
-# --- Global Data Structure ---
-# Use defaultdict to easily manage price history per stock
-# Store recent closing prices using a deque with a max length
-price_history: Dict[str, Deque[float]] = defaultdict(lambda: deque(maxlen=MA_PERIOD))
-
+# Use defaultdict to easily manage events queue for stocks
+# Price is tickeing each minute, though we will be processing only configured intervals (15 min by default)
+# We will process event if either queue becomes full or when the oldest event timestamp is older or equal to the interval
+live_events_history: Dict[str, Deque[float]] = defaultdict(lambda: deque(maxlen=Config.TIME_INTERVAL_MINS))
+historical_events: Dict[str, Dict] = {}
+predictions = Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 alpaca_api = AlpacaAPI(historical_batch_size=60)
 
-# --- Logging Setup ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# --- Placeholder Function ---
-def process_stock_data(data: List[Dict[str, Any]]):
+# ========================
+# 🔹 Processing of live pricing event
+# ========================
+def process_stock_data(live_event: Dict[str, Any]):
     """
     This function receives the processed stock data.
     Implement your logic here (e.g., store in DB, trigger alerts, etc.).
     """
-    print("-" * 30)
-    print(f"Received data for processing:")
-    events = []
-    for item in data:
-        events = collect_events_history(item['stock'])
-        events.append(item)
-        sector = 'Information Technology'
-        prediction = StockSuggester(sector=sector).predict(events)
-        logging.info(prediction)
+    symbol = live_event['stock']
+    logging.info(f"Received data for processing for {symbol}}")
+    historical_events[symbol].append(live_event)
+    sector = get_sector_for_sp500_ticker(live_event['stock'])
+    prediction = StockSuggester(sector=sector).predict(historical_events[symbol])
+    logging.debug(prediction)
 
-    # {'time': '2025-03-31T19:57:00+00:00', 'stock': 'MSFT', 
-    # 'price': 375.625, 'volume': 12110, 'moving_average': 375.52489}
-    # {'timestamp': Timestamp('2025-03-31 04:00:00-0400', tz='America/New_York'), 
-    # 'open': 373.94, 'high': 376.41, 'low': 373.94, 'close': 375.01, 'volume': 16432, 'moving_average': 375.359104, 'hour': 4, 'minute': 0, 'minutes_since_open': -300}
-    #time,stock,price,volume,moving_average
-    print("-" * 30)
-    
+
+def post_process_suggestion(prediction, symbol):
+    action = prediction['action']
+    if action in (Action.STRONG_BUY, Action.BUY):
+        # alpaca_api.submit_order(symbol, 1,n.BUY, Action.STRONG_BUY):
+        play_success()
+    elif  action in (Action.SELL, Action.STRONG_SELL):
+        play_failure()
+    if action != Action.HOLD:
+        logging.info(f'  🔹 Current Position: {alpaca_api.get_position(symbol)}')
+        from datetime import datetime, timedelta
+        # 5 is a number of future interls for a prediction, need to be changed to a config,
+        # as we are gonna also run 30 intervals and 1 interval (N_PREDICT_STEPS)
+        prediction['target_date'] =  datetime.now() + timedelta(minutes=Config.TIME_INTERVAL_MINS * 5 )  
+        predictions[symbol].append(prediction)
+
+
+# ========================
+# 🔹 Loading a recent history for a trade to feed to the model 
+# ========================    
 def collect_events_history(stock):
     events = []
     for hst in alpaca_api.historical_data[stock].to_dict('records'):
@@ -71,8 +80,9 @@ def collect_events_history(stock):
             'volume': hst['volume'], 'moving_average': hst['moving_average'] })
     return events
 
-# --- Core Logic ---
-
+# ========================
+# 🔹 Core Logic, async handling of live events
+# ========================
 async def handle_bar(bar):
     """
     Async callback function to handle incoming bar data from the stream.
@@ -90,29 +100,51 @@ async def handle_bar(bar):
 
         logging.debug(f"Raw bar received: {symbol} @ {timestamp_iso} - Price: {close_price}, Vol: {volume}")
 
-        # Update price history for the specific stock
-        history = price_history[symbol]
-        history.append(close_price)
-
-        # # Calculate Moving Average
-        # moving_average = None
-        # if len(history) == MA_PERIOD:
-        #     moving_average = sum(history) / MA_PERIOD
-        #     # Optional: round the moving average
-        #     moving_average = round(moving_average, 4)
-
         # Prepare output dictionary
-        output_data = {
+        live_event_data = {
             "time": timestamp_iso,
             "stock": symbol,
             "price": close_price,
             "volume": volume,
             "moving_average": moving_average # Will be None if not enough data yet
         }
+        # Add event to the queue
+        # Only add event if the queue full or empty (first request or oldest event is greater then the time interval)
+        # Check if the queue is full or if the oldest event is older than the interval
+        price_history_for_symbol = live_events_history[symbol]
 
-        # Call the downstream processing function with a list containing this single event
-        # (as requested by the prompt: "sending the list of dicts")
-        process_stock_data([output_data])
+        if len(price_history_for_symbol) == Config.TIME_INTERVAL_MINS:
+            logging.debug(f"Queue for {symbol} is full. Cleaning the queue and processing event.")
+            live_events_history[symbol] = deque(maxlen=Config.TIME_INTERVAL_MINS)
+            should_process = True
+        elif len(price_history_for_symbol) == 0:
+            logging.debug(f"Queue for {symbol} is empty. Processing event.")
+            should_process = True            
+        else:
+            oldest_event_timestamp = pd.Timestamp(price_history_for_symbol[0]['time'])
+            current_timestamp = pd.Timestamp(timestamp_iso)
+            time_diff = current_timestamp - oldest_event_timestamp
+            if time_diff >= pd.Timedelta(minutes=Config.TIME_INTERVAL_MINS):
+                logging.debug(f"Oldest event for {symbol} is older than {Config.TIME_INTERVAL_MINS} minutes. Processing events.")
+                should_process = True
+            else:
+                should_process = False
+        live_events_history.append(live_event_data)
+        
+        if should_process:
+            # Call the downstream processing function with a list containing this single event
+            process_stock_data(live_event_data)
+        else:
+            logging.debug('Skipping event processing')
+
+        # Check predictions and if we have a predition for the stock passed due (target time < now), then remove that preditction from the list
+        now = pd.Timestamp.now()
+        for symbol, pred_list in predictions.items():
+            for pred in pred_list[:]:  # Iterate over a copy to allow removal
+                if pred['target_date'] < now:
+                    logging.info(f"Prediction for {symbol} became due with a price {live_event_data['price']}: {pred}")
+                    predictions[symbol].remove(pred)
+                    
 
     except Exception as e:
         logging.error(f"Error processing bar for {getattr(bar, 'symbol', 'N/A')}: {e}", exc_info=True)
@@ -130,11 +162,10 @@ async def subscribe_and_process_bars(symbols: List[str]):
 
     logging.info(f'Getting recent history for stocks {symbols}')
     for symbol in symbols:
-        alpaca_api.fetch_historical_data(ticker=symbol, period='15Min')
+        historical_events[symbol] = collect_events_history(symbol)
 
     logging.info(f"Attempting to connect to Alpaca Stream API at {BASE_URL} for symbols: {symbols}")
     logging.info(f"Using data feed: {DATA_FEED}")
-    logging.info(f"Calculating {MA_PERIOD}-period SMA.")
 
     # Instantiate Stream
     # Note: use_raw_data=False ensures we get SDK objects (like Bar) instead of raw bytes
@@ -151,7 +182,6 @@ async def subscribe_and_process_bars(symbols: List[str]):
     logging.info("Subscription successful. Starting stream listener...")
     try:
         # Run the stream connection - this will block until disconnected or stopped
-        #await stream.run()
         await stream._run_forever()
     except KeyboardInterrupt:
         logging.info("Stream stopped by user (KeyboardInterrupt).")
@@ -163,13 +193,15 @@ async def subscribe_and_process_bars(symbols: List[str]):
         logging.info("Stream closed.")
 
 
-# --- Example Usage ---
+# ========================
+# 🔹 Example Usage
+# ========================
 if __name__ == "__main__":
     # List of stocks to monitor
-    stock_symbols = ["AAPL", "MSFT", "GOOGL", "TSLA"] # Example stocks
+    stock_symbols = load_watchlist()
 
     print("Starting Alpaca data stream subscription...")
-    print(f"Monitoring: {', '.join(stock_symbols)}")
+    print(f"Monitoring {len} stocks: {', '.join(stock_symbols)}")
     print("Press Ctrl+C to stop.")
 
     # Run the main async function using asyncio's event loop
