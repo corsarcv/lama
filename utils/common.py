@@ -4,8 +4,8 @@ import random
 import csv
 import os
 
-DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
-THREE_DAYS_AGO_DATE = (datetime.now() - timedelta(days=3)).date()
+DATA_FOLDER = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data'))
+FIVE_DAYS_AGO_DATE = (datetime.now() - timedelta(days=5)).date()
 
 def generate_timestamp():
     return str(datetime.now()).replace(' ', '').replace(':', '_')

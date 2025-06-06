@@ -1,31 +1,52 @@
 import asyncio
 import logging
+import os
+import pandas as pd 
+from datetime import datetime, timedelta
+
 from collections import defaultdict, deque
 from typing import List, Dict, Any, Deque
-import pandas as pd  # For easy timestamp conversion
-
-# Use alpaca_trade_api for streaming V2 data
 from alpaca_trade_api.stream import Stream
 from alpaca_trade_api.common import URL
 from alpaca_api.api import ALPACA_API_KEY as API_KEY
 from alpaca_api.api import ALPACA_SECRET_KEY as SECRET_KEY
 from alpaca_api.api import BASE_URL
 from alpaca_api.api import AlpacaAPI
+
 from config import Config
 from gemini_model.gemini import StockSuggester
-from utils.common import THREE_DAYS_AGO_DATE, get_sector_for_sp500_ticker, load_watchlist, play_failure, play_success
+from utils.common import DATA_FOLDER, FIVE_DAYS_AGO_DATE, \
+    get_sector_for_sp500_ticker, load_watchlist, play_failure, play_success
 from utils.enums import Action
 
 # ========================
 # 🔹 Logging Setup
 # ========================
+today_str = datetime.now().strftime("%Y-%m-%d")
+log_filename = os.path.join(DATA_FOLDER, "logs", f"log_stream_{today_str}.log")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Create logger
+logger = logging.getLogger()
+
+if logger.hasHandlers():
+    logger.handlers.clear()
+
+logger.setLevel(Config.LOG_LEVEL)
+formatter = logging.Formatter('%(asctime)s %(message)s')
+
+# File Handler
+file_handler = logging.FileHandler(log_filename, mode='a')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Console (stream) handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 # ========================
 # 🔹 Configuration
 # ========================
-
 # Configure which data feed to use ('sip', 'iex', 'otaa')
 # 'sip' generally requires a paid subscription for real-time minute bars
 DATA_FEED = 'iex' 
@@ -36,7 +57,9 @@ DATA_FEED = 'iex'
 live_events_history: Dict[str, Deque[float]] = defaultdict(lambda: deque(maxlen=Config.TIME_INTERVAL_MINS))
 historical_events: Dict[str, Dict] = {}
 predictions: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-alpaca_api = AlpacaAPI(historical_batch_size=60)
+alpaca_api = AlpacaAPI(historical_batch_size=200)
+
+# 💾 ⏳ ✅ 📥 💰 💵 ⚖️ 🔻 🚀 📊 ⚠️ 🔹
 
 # ========================
 # 🔹 Processing of live pricing event
@@ -47,30 +70,35 @@ def process_stock_data(live_event: Dict[str, Any]):
     Implement your logic here (e.g., store in DB, trigger alerts, etc.).
     """
     symbol = live_event['stock']
-    logging.info(f"Received data for processing for {symbol}")
+    logging.debug(f"Received data for processing for {symbol}")
     historical_events[symbol].append(live_event)
     sector = get_sector_for_sp500_ticker(live_event['stock'])
     prediction = StockSuggester(sector=sector).predict(historical_events[symbol])
     logging.debug(prediction)
+    post_process_suggestion(prediction=prediction, symbol=symbol)
 
 # ========================
 # 🔹 In case if model suggest to buy/sell, 
 # add the suggestion to the list to analyze later
 # ========================
 def post_process_suggestion(prediction, symbol):
-    action = prediction['action']
+    if symbol not in prediction:
+        return
+    action = prediction[symbol].get('action', None)
     if action in (Action.STRONG_BUY, Action.BUY):
         # alpaca_api.submit_order(symbol, 1,n.BUY, Action.STRONG_BUY):
         play_success()
     elif  action in (Action.SELL, Action.STRONG_SELL):
         play_failure()
     if action != Action.HOLD:
-        logging.info(f'  🔹 Current Position: {alpaca_api.get_position(symbol)}')
-        from datetime import datetime, timedelta
+        current_position = alpaca_api.get_position(symbol)
+        if current_position:
+            logging.info(f'  🔹 Current Position: {current_position}')
+
         # 5 is a number of future interls for a prediction, need to be changed to a config,
         # as we are gonna also run 30 intervals and 1 interval (N_PREDICT_STEPS)
-        prediction['target_date'] =  datetime.now() + timedelta(minutes=Config.TIME_INTERVAL_MINS * 5 )  
-        predictions[symbol].append(prediction)
+        prediction[symbol]['target_date'] =  datetime.now() + timedelta(minutes=Config.TIME_INTERVAL_MINS * 5 )  
+        predictions[symbol].append(prediction[symbol])
 
 
 # ========================
@@ -103,18 +131,18 @@ async def handle_bar(bar):
         }
 
         should_process = should_process_event(symbol, timestamp_iso)
-        live_events_history.append(live_event_data)
+        live_events_history[symbol].append(live_event_data)
         
         if should_process:
             # Call the downstream processing function with a list containing this single event
             process_stock_data(live_event_data)
         else:
-            logging.debug('Skipping event processing')
+            logging.debug('Skipping event processing (pooling)')
 
         check_due_predictions(symbol, live_event_data)
 
     except Exception as e:
-        logging.error(f"Error processing bar for {getattr(bar, 'symbol', 'N/A')}: {e}", exc_info=True)
+        logging.error(f"⚠️ Error processing bar for {getattr(bar, 'symbol', 'N/A')}: {e}", exc_info=True)
 
 
 # ========================
@@ -163,23 +191,22 @@ async def subscribe_and_process_bars():
     """
 
     if not API_KEY or not SECRET_KEY:
-        logging.error("API Key ID or Secret Key not found in environment variables.")
-        print("Error: Set APCA_API_KEY_ID and APCA_API_SECRET_KEY environment variables.")
+        logging.error(" ⚠️ API Key ID or Secret Key configuration not found")
         return
     
     # List of stocks to monitor
     stock_symbols = load_watchlist()
-    print(f"Monitoring {len} stocks: {', '.join(stock_symbols)}")
+    logging.info(f"Monitoring {len} stocks: {', '.join(stock_symbols)}")
 
     logging.info(f'Getting recent history for stocks {stock_symbols}')
     for symbol in stock_symbols:
-        historical_events[symbol] = alpaca_api.fetch_historical_data_as_events(ticker=symbol, period='15Min', start=THREE_DAYS_AGO_DATE)
+        historical_events[symbol] = alpaca_api.fetch_historical_data_as_events(ticker=symbol, period='15Min', start=FIVE_DAYS_AGO_DATE)
 
-    logging.info(f"Attempting to connect to Alpaca Stream API at {BASE_URL} for symbols: {stock_symbols}")
-    logging.info(f"Using data feed: {DATA_FEED}")
+    logging.info(f"Attempting to connect to Alpaca Stream API feed {DATA_FEED} at {BASE_URL} for symbols: {stock_symbols}")
 
     # Instantiate Stream
     # Note: use_raw_data=False ensures we get SDK objects (like Bar) instead of raw bytes
+    # TODO: Move to AlpacaAPI class
     stream = Stream(API_KEY,
                     SECRET_KEY,
                     base_url=URL(BASE_URL),
@@ -190,32 +217,30 @@ async def subscribe_and_process_bars():
     # The '*' unpacks the list of symbols
     stream.subscribe_bars(handle_bar, *stock_symbols)
 
-    logging.info("Subscription successful. Starting stream listener...")
+    logging.info("✅ Subscription successful. Starting stream listener...")
     try:
         # Run the stream connection - this will block until disconnected or stopped
         await stream._run_forever()
     except KeyboardInterrupt:
-        logging.info("Stream stopped by user (KeyboardInterrupt).")
+        logging.info("⚠️ Stream stopped by user (KeyboardInterrupt).")
     except Exception as e:
-        logging.error(f"An error occurred during streaming: {e}", exc_info=True)
+        logging.error(f"⚠️ An error occurred during streaming: {e}", exc_info=True)
     finally:
-        logging.info("Closing Alpaca stream connection...")
-        await stream.close()
-        logging.info("Stream closed.")
+        logging.info("⏳ Closing Alpaca stream connection...")
+        await stream.stop_ws()
+        logging.info("✅ Stream closed.")
 
 
 # ========================
-# 🔹 EStarting main app loop
+# 🔹 Starting main app loop
 # ========================
 if __name__ == "__main__":
-
-    print("Starting Alpaca data stream subscription...")
-    print("Press Ctrl+C to stop.")
-
+    logging.info("⏳ Starting Alpaca data stream subscription. Press Ctrl+C to stop...")
     # Run the main async function using asyncio's event loop
     try:
         asyncio.run(subscribe_and_process_bars())
     except KeyboardInterrupt:
-        print("\nExiting application.")
+        logging.warning("\n⏳  Exiting application.")
+        exit(0)
     except Exception as e:
-        print(f"\nApplication exited with an error: {e}")
+        logging.error(f"\n⚠️  Application exited with an error: {e}")
