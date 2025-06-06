@@ -8,7 +8,7 @@ from utils.common import build_stocks_map
 ALPACA_API = AlpacaAPI(historical_batch_size=10000)
 
 single_stock = None  # 'COST'
-stop_if_history_exists = True
+stop_if_history_exists = False
 
 grouped_stocks_data = build_stocks_map()
 
@@ -18,7 +18,7 @@ for sector, symbols in grouped_stocks_data.items():
     print(f'🔹 Processing {symbols} {sector}')
     if single_stock:
         sector = single_stock
-    suggester = StockSuggester(sector=sector, n_predict_steps=20)
+    suggester = StockSuggester(sector=sector, n_predict_steps=32, lookback_period=128)
     events = []
     for symbol in symbols:
         if single_stock and symbol != single_stock:
@@ -45,9 +45,9 @@ for sector, symbols in grouped_stocks_data.items():
     # ['time', 'stock', 'price', 'volume', 'moving_average']
     
     # The main point here - learning
-    if len(events) > 0:
-        suggester.learn(events, update_history=last_timestamp is None)
-    else:
-        print(f'No events for {sector}. Movng to the next group')
+    # if len(events) > 0:
+    #     suggester.learn(events, update_history=last_timestamp is None)
+    # else:
+    #     print(f'No events for {sector}. Movng to the next group')
     print(f'🔹 Done processing {sector}\n')
 

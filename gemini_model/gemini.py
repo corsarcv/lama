@@ -384,7 +384,7 @@ class StockSuggester:
         # 5. Train the Model
         logging.debug("⏳ Starting model training...")
         # Consider using validation_split if you have more data, e.g., validation_split=0.1
-        history_callback = self.model.fit(X_train, y_train, epochs=10, batch_size=256, verbose=1) # Increased epochs/batch slightly
+        history_callback = self.model.fit(X_train, y_train, epochs=10, batch_size=65, verbose=1) # Increased epochs/batch slightly
 
         logging.debug("✅ Model training finished.")
         self.is_sufficiently_trained = True # Mark as trained
