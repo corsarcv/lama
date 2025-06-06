@@ -1,0 +1,206 @@
+Notes:
+ Real estate - raise only;
+ Financials - raise is preferable;
+ Industrials - low diff, drop is unrealable
+ Utilities - quite stable progress
+ Communication Services - quite stable, though drop varies a bit
+ SPYG raise is preferable
+
+
+**************************************************
+Processing file: SPYG , is_drop: True , pct: 0.005
+--------------------------------------------------
+Intraday: 5d 1.08 1817
+Overnight: 5d 3.31 7
+**************************************************
+Processing file: SPYG , is_drop: False , pct: 0.005
+--------------------------------------------------
+Intraday: 5d 1.7 1570
+**************************************************
+Processing file: SPYG , is_drop: True , pct: 0.01
+--------------------------------------------------
+Intraday: 5d 1.85 835
+Overnight: 5d 8.13 2
+**************************************************
+Processing file: SPYG , is_drop: False , pct: 0.01
+--------------------------------------------------
+Intraday: 5d 2.37 852
+**************************************************
+Processing file: SPYG , is_drop: True , pct: 0.02
+--------------------------------------------------
+Intraday: 5d 3.92 218
+**************************************************
+Processing file: SPYG , is_drop: False , pct: 0.02
+--------------------------------------------------
+Intraday: 5d 4.41 276
+**************************************************
+Processing file: SPYG , is_drop: True , pct: 0.05
+--------------------------------------------------
+Intraday: 5d 2.89 19
+**************************************************
+Processing file: SPYG , is_drop: False , pct: 0.05
+--------------------------------------------------
+Intraday: 5d 13.76 16
+*****************************************************************************************
+
+
+***************************************************************************
+Processing file: Financials , is_drop: True , pct: 0.005
+Intraday: Diff: 1.0357%, Records#: 125278
+Overnight: Diff: 1.9639%, Records#: 156
+***************************************************************************
+Processing file: Financials , is_drop: False , pct: 0.005
+Intraday: Diff: 1.3553%, Records#: 109553
+Overnight: Diff: 1.7894%, Records#: 217
+***************************************************************************
+Processing file: Financials , is_drop: True , pct: 0.01
+Intraday: Diff: 1.0136%, Records#: 59750
+Overnight: Diff: 3.8348%, Records#: 33
+***************************************************************************
+Processing file: Financials , is_drop: False , pct: 0.01
+Intraday: Diff: 1.4754%, Records#: 55508
+Overnight: Diff: 1.65%, Records#: 70
+***************************************************************************
+Processing file: Financials , is_drop: True , pct: 0.02
+Intraday: Diff: 1.2893%, Records#: 13971
+Overnight: Diff: 7.41%, Records#: 2
+***************************************************************************
+Processing file: Financials , is_drop: False , pct: 0.02
+Intraday: Diff: 2.0099%, Records#: 15721
+Overnight: Diff: 5.9137%, Records#: 8
+***************************************************************************
+Processing file: Financials , is_drop: True , pct: 0.05
+Intraday: Diff: 2.0338%, Records#: 1118
+Overnight: No anomalies
+***************************************************************************
+Processing file: Financials , is_drop: False , pct: 0.05
+Intraday: Diff: 2.8451%, Records#: 1246
+Overnight: Diff: 37.85%, Records#: 1
+***************************************************************************
+Processing file: Real Estate , is_drop: True , pct: 0.005
+Intraday: Diff: 0.7884%, Records#: 51858
+Overnight: Diff: 1.2037%, Records#: 69
+***************************************************************************
+Processing file: Real Estate , is_drop: False , pct: 0.005
+Intraday: Diff: 1.0445%, Records#: 47590
+Overnight: Diff: 0.5818%, Records#: 83
+***************************************************************************
+Processing file: Real Estate , is_drop: True , pct: 0.01
+Intraday: Diff: 0.5897%, Records#: 25635
+Overnight: Diff: -0.6473%, Records#: 22
+***************************************************************************
+Processing file: Real Estate , is_drop: False , pct: 0.01
+Intraday: Diff: 1.2981%, Records#: 23887
+Overnight: Diff: 1.3233%, Records#: 23
+***************************************************************************
+Processing file: Real Estate , is_drop: True , pct: 0.02
+Intraday: Diff: 0.4829%, Records#: 5624
+Overnight: Diff: 1.854%, Records#: 5
+***************************************************************************
+Processing file: Real Estate , is_drop: False , pct: 0.02
+Intraday: Diff: 1.5965%, Records#: 5671
+Overnight: Diff: 5.036%, Records#: 6
+***************************************************************************
+Processing file: Real Estate , is_drop: True , pct: 0.05
+Intraday: Diff: -0.8444%, Records#: 263
+Overnight: No anomalies
+***************************************************************************
+Processing file: Real Estate , is_drop: False , pct: 0.05
+Intraday: Diff: 4.4548%, Records#: 277
+Overnight: Diff: 3.8%, Records#: 1
+***************************************************************************
+Processing file: Industrials , is_drop: True , pct: 0.005
+Intraday: Diff: 0.1644%, Records#: 135889
+Overnight: Diff: 0.7874%, Records#: 271
+***************************************************************************
+Processing file: Industrials , is_drop: False , pct: 0.005
+Intraday: Diff: 0.6914%, Records#: 126293
+Overnight: Diff: 1.0964%, Records#: 258
+***************************************************************************
+Processing file: Industrials , is_drop: True , pct: 0.01
+Intraday: Diff: 0.1301%, Records#: 70164
+Overnight: Diff: 1.1341%, Records#: 77
+***************************************************************************
+Processing file: Industrials , is_drop: False , pct: 0.01
+Intraday: Diff: 0.8947%, Records#: 65832
+Overnight: Diff: 0.544%, Records#: 71
+***************************************************************************
+Processing file: Industrials , is_drop: True , pct: 0.02
+Intraday: Diff: 0.1356%, Records#: 19862
+Overnight: Diff: -0.3333%, Records#: 25
+***************************************************************************
+Processing file: Industrials , is_drop: False , pct: 0.02
+Intraday: Diff: 1.3626%, Records#: 20166
+Overnight: Diff: -1.9807%, Records#: 15
+***************************************************************************
+Processing file: Industrials , is_drop: True , pct: 0.05
+Intraday: Diff: 0.7%, Records#: 1861
+Overnight: Diff: 15.12%, Records#: 1
+***************************************************************************
+Processing file: Industrials , is_drop: False , pct: 0.05
+Intraday: Diff: 1.7097%, Records#: 2266
+Overnight: Diff: 3.38%, Records#: 1
+***************************************************************************
+Processing file: Utilities , is_drop: True , pct: 0.005
+Intraday: Diff: 1.3539%, Records#: 54583
+Overnight: Diff: 2.8359%, Records#: 96
+***************************************************************************
+Processing file: Utilities , is_drop: False , pct: 0.005
+Intraday: Diff: 1.3816%, Records#: 45930
+Overnight: Diff: 2.2819%, Records#: 100
+***************************************************************************
+Processing file: Utilities , is_drop: True , pct: 0.01
+Intraday: Diff: 1.2477%, Records#: 25074
+Overnight: Diff: 7.065%, Records#: 25
+***************************************************************************
+Processing file: Utilities , is_drop: False , pct: 0.01
+Intraday: Diff: 1.5165%, Records#: 22139
+Overnight: Diff: 1.2007%, Records#: 33
+***************************************************************************
+Processing file: Utilities , is_drop: True , pct: 0.02
+Intraday: Diff: 1.6077%, Records#: 6226
+Overnight: Diff: 10.08%, Records#: 5
+***************************************************************************
+Processing file: Utilities , is_drop: False , pct: 0.02
+Intraday: Diff: 2.1871%, Records#: 6492
+Overnight: Diff: -3.23%, Records#: 4
+***************************************************************************
+Processing file: Utilities , is_drop: True , pct: 0.05
+Intraday: Diff: -0.1763%, Records#: 540
+Overnight: Diff: 8.73%, Records#: 1
+***************************************************************************
+Processing file: Utilities , is_drop: False , pct: 0.05
+Intraday: Diff: 1.4859%, Records#: 800
+Overnight: No anomalies
+***************************************************************************
+Processing file: Communication Services , is_drop: True , pct: 0.005
+Intraday: Diff: 1.1227%, Records#: 40881
+Overnight: Diff: -0.0786%, Records#: 78
+***************************************************************************
+Processing file: Communication Services , is_drop: False , pct: 0.005
+Intraday: Diff: 1.3086%, Records#: 36208
+Overnight: Diff: 2.3818%, Records#: 71
+***************************************************************************
+Processing file: Communication Services , is_drop: True , pct: 0.01
+Intraday: Diff: 1.0918%, Records#: 19690
+Overnight: Diff: 1.1%, Records#: 18
+***************************************************************************
+Processing file: Communication Services , is_drop: False , pct: 0.01
+Intraday: Diff: 1.3595%, Records#: 18186
+Overnight: Diff: 3.8864%, Records#: 23
+***************************************************************************
+Processing file: Communication Services , is_drop: True , pct: 0.02
+Intraday: Diff: 0.8127%, Records#: 5072
+Overnight: Diff: -5.14%, Records#: 2
+***************************************************************************
+Processing file: Communication Services , is_drop: False , pct: 0.02
+Intraday: Diff: 1.8327%, Records#: 5318
+Overnight: Diff: 1.16%, Records#: 2
+***************************************************************************
+Processing file: Communication Services , is_drop: True , pct: 0.05
+Intraday: Diff: 0.301%, Records#: 522
+Overnight: No anomalies
+***************************************************************************
+Processing file: Communication Services , is_drop: False , pct: 0.05
+Intraday: Diff: 2.1135%, Records#: 484
+Overnight: No anomalies
