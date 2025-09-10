@@ -8,4 +8,5 @@ data/logs/*
 data/model_learning/*
 __pycache__
 .vscode
+.env
 utils/__pycache__
