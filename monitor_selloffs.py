@@ -16,6 +16,12 @@ Env vars (recommended):
   ALPACA_API_KEY_ID, ALPACA_API_SECRET_KEY, ALPACA_BASE_URL, ALPACA_DATA_FEED
   ALERT_SMTP_HOST, ALERT_SMTP_PORT, ALERT_SMTP_USER, ALERT_SMTP_PASS
   ALERT_EMAIL_FROM, ALERT_EMAIL_TO
+
+Tuning suggestions
+market_shift_flag thresholds: adjust (0.20, 0.05) if you want a stricter or looser definition of “market-wide”.
+min seller $ volume: set lower (e.g., 250k–500k) for mid-caps, higher (1–5M) for mega-caps.
+trade window: reduce to 10 min during pre-close for snappier sell-pressure sensing; keep 20–30 min intraday.
+
 """
 
 import argparse
@@ -54,10 +60,10 @@ CONFIG = {
     "min_sellout_dollar_vol": 1_000_000,  # Require at least this $ seller-initiated volume in window
     "trade_window_minutes": 20,       # For sell/buy classification (rolling window)
     "data_feed": os.getenv("ALPACA_DATA_FEED", "iex"),  # "iex" or "sip"
-    "email_enabled": True,
+    "email_enabled": False,
     "sound_enabled": True,
     "ny_tz": "America/New_York",
-    "log_csv_path": "selloff_monitor_log.csv",          # CSV log
+    "log_csv_path": "./data/logs/selloff_monitor_log.csv",          # CSV log
     "preclose_period_seconds": 60,                      # cadence during 15:40–16:00 ET
 }
 
@@ -138,6 +144,18 @@ def in_preclose_window(now_ny=None):
     start = now_ny.replace(hour=15, minute=40, second=0, microsecond=0)
     end = now_ny.replace(hour=16, minute=0, second=0, microsecond=0)
     return start <= now_ny < end
+
+def in_closed_window(now_ny=None):
+    """After 4 PM amd before 9 AM ET."""
+    if now_ny is None:
+        now_ny = as_ny(datetime.now(timezone.utc))
+    if now_ny.weekday() >= 5:
+        return True
+    start = now_ny.replace(hour=16, minute=0, second=0, microsecond=0)
+    end = now_ny.replace(hour=9, minute=0, second=0, microsecond=0)
+    return now_ny >= start or now_ny < end
+
+
 
 def build_client():
     if not ALPACA["key"] or not ALPACA["secret"]:
@@ -424,7 +442,7 @@ def main():
     colorama_init(autoreset=True)
 
     parser = argparse.ArgumentParser(description="Monitor price drops and sellout pressure via Alpaca Market Data v2, with CSV logging and pre-close scans.")
-    parser.add_argument("--symbols", type=str, required=True, help="Comma-separated list (max 50)")
+    parser.add_argument("--symbols", type=str, default="TSLA, AAPL, BAC, CVS, EXPE, FANG, GOOG, GS, IBM, JBL", help="Comma-separated list (max 50)")
     parser.add_argument("--drop", type=float, default=CONFIG["drop_threshold_pct"], help="Drop threshold in percent (default 1.0)")
     parser.add_argument("--sellout", type=float, default=CONFIG["sellout_ratio_threshold"], help="Seller-initiated ratio 0-1 (default 0.62)")
     parser.add_argument("--period", type=int, default=CONFIG["check_period_minutes"], help="Check period in minutes outside pre-close (default 20)")
@@ -437,8 +455,6 @@ def main():
     args = parser.parse_args()
 
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
-    if not symbols:
-        print_alert("No symbols provided."); sys.exit(1)
     if len(symbols) > 50:
         print_alert("Max 50 symbols allowed."); sys.exit(1)
 
@@ -471,6 +487,9 @@ def main():
         now_ny = as_ny(datetime.now(timezone.utc))
         if in_preclose_window(now_ny):
             time.sleep(CONFIG["preclose_period_seconds"])
+        elif in_closed_window(now_ny):
+            print_info("Markets are closed. Exiting...")
+            break
         else:
             time.sleep(CONFIG["check_period_minutes"] * 60)
 

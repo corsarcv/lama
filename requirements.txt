@@ -17,5 +17,7 @@ joblib
 scikit-learn
 pandas-ta
 yfinance
-playsound
+#playsound
 PyObjC
+colorama
+python-dateutil
